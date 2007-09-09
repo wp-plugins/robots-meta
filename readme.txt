@@ -21,6 +21,7 @@ This plugin makes it possible (and very easy) to:
 * Disable author and date-based archives.
 
 And as soon as WordPress 2.3 is released, this plugin will make it possible to:
+
 * Prevent indexing of just your comment feeds.
 * Enforce a trailing slash on archives.
 
