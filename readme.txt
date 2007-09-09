@@ -1,6 +1,6 @@
 === Plugin Name ===
 Contributors: joostdevalk
-Donate link: http://www.joostdevalk.nl/wordpress/
+Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
 Tested up to: 2.2
@@ -25,7 +25,11 @@ And as soon as WordPress 2.3 is released, this plugin will make it possible to:
 * Prevent indexing of just your comment feeds.
 * Enforce a trailing slash on archives.
 
-For more info, version history, etc. check out the page on my site about the [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/)
+== More info ==
+
+* For more info, version history, etc. check out the page on my site about the [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/). 
+* To check out the other WordPress plugins I wrote, check out my [WordPress plugins](http://www.joostdevalk.nl/wordpress/) page.
+* For updates about this plugin and other plugins I created read my [SEO blog](http://www.joostdevalk.nl/)
 
 == Installation ==
 
