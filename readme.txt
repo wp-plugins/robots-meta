@@ -4,7 +4,7 @@ Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
 Tested up to: 2.2
-stable tag: 1.3
+stable tag: 1.4
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
@@ -19,6 +19,7 @@ This plugin makes it possible (and very easy) to:
 * Add noodp an noydir meta robots tags, allowing you to opt out of DMOZ and Yahoo! Directory descriptions.
 * Prevent Yahoo! and Google from indexing your feeds by adding a meta tag to their head-section.
 * Disable author and date-based archives.
+* Nofollow category listings on single pages and posts to prevent PageRank leakage.
 
 And as soon as WordPress 2.3 is released, this plugin will make it possible to:
 

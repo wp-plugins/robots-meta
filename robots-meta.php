@@ -79,6 +79,18 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['login'] = false;
 				}
 
+				if (isset($_POST['nofollowcatsingle'])) {
+					$options['nofollowcatsingle'] = true;
+				} else {
+					$options['nofollowcatsingle'] = false;
+				}
+
+				if (isset($_POST['nofollowcatpage'])) {
+					$options['nofollowcatpage'] = true;
+				} else {
+					$options['nofollowcatpage'] = false;
+				}
+
 				if (isset($_POST['noodp'])) {
 					$options['noodp'] = true;
 				} else {
@@ -272,6 +284,28 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 							For the date based archives, the same applies: they probably look a lot like your homepage, and could thus be seen as duplicate content.
 						</p>
 		<?php } ?>
+						<h3>Internal nofollow settings</h3>
+						<table>
+							<tr>
+								<td style="width: 30px;">
+									<input type="checkbox" id="nofollowcatpage" name="nofollowcatpage" <?php if ( $options['nofollowcatpage'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="nofollowcatpage">Nofollow category listings on pages</label>
+								</td>
+							</tr>
+							<tr>
+								<td style="width: 30px;">
+									<input type="checkbox" id="nofollowcatsingle" name="nofollowcatsingle" <?php if ( $options['nofollowcatsingle'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="nofollowcatsingle">Nofollow category listings on single posts</label>
+								</td>
+							</tr>
+						</table>
+		<?php if (!$options['disableexplanation']) { ?>
+						<p>
+							If you're showing a category listing on all your single posts and pages, you're "leaking" quite a bit of PageRank towards these pages, whereas you probably want your single posts to rank. To prevent that from happening, check the two boxes above, and you will nofollow all the links to your categories from single posts and/or pages.
+						</p>
+		<?php } ?>
 						<h3>Plugin settings</h3>
 						<table>
 							<tr>
@@ -320,8 +354,8 @@ function noindex_page() {
 }
 
 function meta_robots() {
-	$opt  = get_option('RobotsMeta');
-	$options = unserialize($opt);
+	global $options;
+	
 	$meta = "";
 
 	if ($options['search'] && is_search()) {
@@ -355,14 +389,24 @@ function add_trailingslash($url, $type) {
 }
 
 function archive_redirect() {
-	$opt  = get_option('RobotsMeta');
-	$options = unserialize($opt);
+	global $options;
 	
 	if ($options['disabledate'] && is_date()) {
 			wp_redirect(get_bloginfo('url'),301);
 	}
 	if ($options['disableauthor'] && is_author()) {
 			wp_redirect(get_bloginfo('url'),301);
+	}
+}
+
+function nofollow_category_listing($output) {
+	global $options;
+	
+	if ( ($options['nofollowcatsingle'] && is_single() ) || ($options['nofollowcatpage'] && is_page() ) ) {
+		$output = str_replace('href=','rel="nofollow" href=',$output);
+		return $output;
+	} else {
+		return $output;
 	}
 }
 
@@ -393,6 +437,9 @@ if ($options['admin']) {
 }
 if ($options['disabledate'] || $options['disableauthor']) {
 	add_action('get_header', 'archive_redirect');
+}
+if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
+	add_filter('wp_list_categories','nofollow_category_listing');
 }
 add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
 
