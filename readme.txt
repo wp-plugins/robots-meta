@@ -4,7 +4,7 @@ Donate link: http://www.joostdevalk.nl/wordpress/
 Tags: meta,search engines,seo
 Requires at least: 2.2
 Tested up to: 2.2
-Stable tag: 1.2
+stable tag: 1.2
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
@@ -21,6 +21,7 @@ This plugin makes it possible (and very easy) to:
 * Disable author and date-based archives.
 
 And as soon as WordPress 2.3 is released, this plugin will make it possible to:
+
 * Prevent indexing of just your comment feeds.
 * Enforce a trailing slash on archives.
 
