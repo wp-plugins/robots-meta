@@ -4,7 +4,7 @@ Donate link: http://www.joostdevalk.nl/wordpress/
 Tags: meta,search engines,seo
 Requires at least: 2.2
 Tested up to: 2.2
-Stable tag: 1.0
+stable tag: 1.2
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
