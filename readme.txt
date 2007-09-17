@@ -26,6 +26,10 @@ And as soon as WordPress 2.3 is released, this plugin will make it possible to:
 * Prevent indexing of just your comment feeds.
 * Enforce a trailing slash on archives.
 
+More info:
+* [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/).
+* Other [Wordpress plugins](http://www.joostdevalk.nl/wordpress/) by the same author.
+
 == More info ==
 
 * For more info, version history, etc. check out the page on my site about the [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/). 
