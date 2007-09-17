@@ -27,6 +27,7 @@ And as soon as WordPress 2.3 is released, this plugin will make it possible to:
 * Enforce a trailing slash on archives.
 
 More info:
+
 * [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/).
 * Other [Wordpress plugins](http://www.joostdevalk.nl/wordpress/) by the same author.
 
