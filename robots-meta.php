@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 1.4
+Version: 1.5
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -21,16 +21,29 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 
 		function config_page() {
 			if ( isset($_POST['submitrobots']) ) {
-				if (!current_user_can('manage_options')) die(__('You cannot edit the Robots Meta options.'));
+				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.'));
 				check_admin_referer('robots-meta-udpaterobotstxt');
 				
-				$real_file = "../robots.txt";
+				$robots_file = "../robots.txt";
 				$robotsnew = stripslashes($_POST['robotsnew']);
-				if (is_writeable($real_file)) {
-					$f = fopen($real_file, 'w+');
+				if (is_writeable($robots_file)) {
+					$f = fopen($robots_file, 'w+');
 					fwrite($f, $robotsnew);
 					fclose($f);
 				}
+			}
+			if ( isset($_POST['submithtaccess']) ) {
+				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess.'));
+				check_admin_referer('robots-meta-udpatehtaccesstxt');
+
+				$htaccess_file = "../.htaccess";
+				$htaccessnew = stripslashes($_POST['htaccessnew']);
+				if (is_writeable($htaccess_file)) {
+					$f = fopen($htaccess_file, 'w+');
+					fwrite($f, $htaccessnew);
+					fclose($f);
+				}
+
 			}
 			if ( isset($_POST['submit']) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the Robots Meta options.'));
@@ -103,6 +116,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['noydir'] = false;
 				}
 				
+				if (isset($_POST['pagedhome'])) {
+					$options['pagedhome'] = true;
+				} else {
+					$options['pagedhome'] = false;
+				}
+
 				if (isset($_POST['search'])) {
 					$options['search'] = true;
 				} else {
@@ -125,14 +144,25 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				$options['comments'] = true;
 			}
 
-			$real_file = "../robots.txt";
-			if (!is_file($real_file))
+			$robots_file = "../robots.txt";
+			if (!is_file($robots_file))
 				$error = 1;
 			
-			if (!$error && filesize($real_file) > 0) {
-				$f = fopen($real_file, 'r');
-				$content = fread($f, filesize($real_file));
+			if (!$error && filesize($robots_file) > 0) {
+				$f = fopen($robots_file, 'r');
+				$content = fread($f, filesize($robots_file));
 				$content = htmlspecialchars($content);
+			}
+
+			$error = 0;
+			$htaccess_file = "../.htaccess";
+			if (!is_file($htaccess_file))
+				$error = 1;
+			
+			if (!$error && filesize($htaccess_file) > 0) {
+				$f = fopen($htaccess_file, 'r');
+				$contentht = fread($f, filesize($htaccess_file));
+				$contentht = htmlspecialchars($contentht);
 			}
 			
 			?>
@@ -189,6 +219,13 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<input type="checkbox" id="search" name="search" <?php if ( $options['search'] == true ) echo ' checked="checked" '; ?>/></td>
 								<td>
 									<label for="search">This site's search result pages</label>
+								</td>
+							</tr>
+							<tr>
+								<td style="width: 30px;">
+									<input type="checkbox" id="pagedhome" name="pagedhome" <?php if ( $options['pagedhome'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="pagedhome">Subpages of the homepage</label>
 								</td>
 							</tr>
 							<tr>
@@ -325,7 +362,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					<form action="" method="post" id="robotstxt">
 						<?php wp_nonce_field('robots-meta-udpaterobotstxt'); ?>
 						<?php
-							if (! is_writeable($real_file)) {
+							if (! is_writeable($robots_file)) {
 								echo "<p><em>If your robots.txt were writable, you could edit it from here.</em></p>";
 								$disabled = 'disabled="disabled"';
 							} else {
@@ -336,6 +373,26 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						<textarea cols="60" <?php echo $disabled; ?> rows="15" name="robotsnew"><?php echo $content ?></textarea>
 						<?php if ($disabled == "") { ?>
 						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submitrobots" value="Alter Robots.txt &raquo;" /></span>
+						<?php } ?>
+					</form>
+				</fieldset>
+				<br/><br/>
+				<h2>.htaccess</h2>
+				<fieldset>
+					<form action="" method="post" id="htaccess">
+						<?php wp_nonce_field('robots-meta-udpatehtaccesstxt'); ?>
+						<?php
+							if (! is_writeable($htaccess_file)) {
+								echo "<p><em>If your .htaccess were writable, you could edit it from here.</em></p>";
+								$disabled = 'disabled="disabled"';
+							} else {
+								echo "<p>Edit the content of your .htaccess:</p>";
+								$disabled = "";
+							}
+						?>
+						<textarea cols="60" <?php echo $disabled; ?> rows="15" name="htaccessnew"><?php echo $contentht ?></textarea>
+						<?php if ($disabled == "") { ?>
+						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submithtaccess" value="Alter .htaccess &raquo;" /></span>
 						<?php } ?>
 					</form>
 				</fieldset>
@@ -358,7 +415,7 @@ function meta_robots() {
 	
 	$meta = "";
 
-	if ($options['search'] && is_search()) {
+	if ( ($options['search'] && is_search()) || ($options['pagedhome'] && is_home() && get_query_var('paged') > 1) ) {
 		$meta .= "noindex,follow";
 	} 
 	if ($options['noodp']) {

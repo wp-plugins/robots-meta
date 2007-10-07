@@ -4,7 +4,7 @@ Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
 Tested up to: 2.2
-stable tag: 1.4
+stable tag: 1.5
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
@@ -15,6 +15,7 @@ There’s no easy way to add meta robots tags to WordPress pages, unless of cour
 This plugin makes it possible (and very easy) to:
 
 * Prevent indexing of your search result pages, while still allowing the search engines to follow the links on them, by adding noindex,follow robots meta tags.
+* Disallow indexing of subpages to your homepage, to prevent duplicate content.
 * Prevent indexing of your login, register and admin pages by adding noindex robots meta tags.
 * Add noodp an noydir meta robots tags, allowing you to opt out of DMOZ and Yahoo! Directory descriptions.
 * Prevent Yahoo! and Google from indexing your feeds by adding a meta tag to their head-section.
