@@ -3,8 +3,8 @@ Contributors: joostdevalk
 Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
-Tested up to: 2.2
-stable tag: 1.5
+Tested up to: 2.3
+stable tag: 2.0
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
@@ -19,18 +19,22 @@ This plugin makes it possible (and very easy) to:
 * Prevent indexing of your login, register and admin pages by adding noindex robots meta tags.
 * Add noodp an noydir meta robots tags, allowing you to opt out of DMOZ and Yahoo! Directory descriptions.
 * Prevent Yahoo! and Google from indexing your feeds by adding a meta tag to their head-section.
+* Prevent indexing of just your comment feeds.
 * Disable author and date-based archives.
 * Nofollow category listings on single pages and posts to prevent PageRank leakage.
-
-And as soon as WordPress 2.3 is released, this plugin will make it possible to:
-
-* Prevent indexing of just your comment feeds.
 * Enforce a trailing slash on archives.
+* Edit your .htaccess and your robots.txt from within WordPress.
+* Assign robots meta tags to individual posts & pages.
 
 More info:
 
 * [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/).
 * Other [Wordpress plugins](http://www.joostdevalk.nl/wordpress/) by the same author.
+
+== Screenshots ==
+
+1. Screenshot of the configuration panel for this plugin.
+2. Screenshot of the right column block this plugin adds to the edit post and edit page admin areas.
 
 == More info ==
 

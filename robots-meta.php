@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 1.5
+Version: 2.0
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -19,6 +19,35 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 		} // end add_config_page()
 
+		function robotsmeta_addcolumn () {
+			global $wpdb;
+			$wpdb->query("ALTER TABLE $wpdb->posts ADD COLUMN robotsmeta varchar(64)");
+		}
+		
+		function robotsmeta_insert_post($pID) {
+			global $wpdb;
+			extract($_POST);
+			$wpdb->query("UPDATE $wpdb->posts SET robotsmeta = '$robotsmeta' WHERE ID = $pID");
+		}
+		function noindex_option() {
+			global $post;
+			$robotsmeta = $post->robotsmeta;
+			if (!isset($robotsmeta) || $robotsmeta == "") {
+				$robotsmeta = "index,follow";
+			}
+			if ( current_user_can('edit_posts') ) { ?>
+			<fieldset id="robotsmeta-noindexoption" class="dbx-box">
+			<h3 class="dbx-handle">Robots Meta</h3>
+			<div class="dbx-content">
+				<label for="meta_robots_index_follow" class="selectit"><input id="meta_robots_index_follow" name="robotsmeta" type="radio" value="index,follow" <?php if ($robotsmeta == "index,follow") echo 'checked="checked"'?>/>index, follow</label>
+				<label for="meta_robots_index_nofollow" class="selectit"><input id="meta_robots_index_nofollow" name="robotsmeta" type="radio" value="index,nofollow" <?php if ($robotsmeta == "index,nofollow") echo 'checked="checked"'?>/>index, nofollow</label>
+				<label for="meta_robots_noindex_follow" class="selectit"><input id="meta_robots_noindex_follow" name="robotsmeta" type="radio" value="noindex,follow" <?php if ($robotsmeta == "noindex,follow") echo 'checked="checked"'?>/>noindex, follow</label>
+				<label for="meta_robots_noindex_nofollow" class="selectit"><input id="meta_robots_noindex_nofollow" name="robotsmeta" type="radio" value="noindex,nofollow" <?php if ($robotsmeta == "noindex,nofollow") echo 'checked="checked"'?>/>noindex, nofollow</label>
+			</div>
+			</fieldset>
+			<?php }
+		}
+		
 		function config_page() {
 			if ( isset($_POST['submitrobots']) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.'));
@@ -415,9 +444,17 @@ function meta_robots() {
 	
 	$meta = "";
 
-	if ( ($options['search'] && is_search()) || ($options['pagedhome'] && is_home() && get_query_var('paged') > 1) ) {
-		$meta .= "noindex,follow";
-	} 
+	if (is_single() || is_page()) {
+		global $post;
+		if ($post->robotsmeta != "index,follow") {
+			$meta = $post->robotsmeta;	
+		}
+	}
+	if (is_search() || is_home() ) {
+		if ( $options['search'] || ($options['pagedhome'] && get_query_var('paged') > 1) ) {
+			$meta .= "noindex,follow";
+		} 
+	}
 	if ($options['noodp']) {
 		if ($meta != "") {
 			$meta .= ",";
@@ -430,7 +467,7 @@ function meta_robots() {
 		}
 		$meta .= "noydir";
 	}
-	if ($meta != "") {
+	if ($meta != "" && $meta != "index,follow") {
 		echo '<meta name="robots" content="'.$meta.'" />'."\n";
 	}
 } 
@@ -483,9 +520,9 @@ if ($options['allfeeds']) {
 	add_action('rss_head', 'noindex_feed');
 	add_action('rss2_head', 'noindex_feed');
 }
-if ($options['search'] || $options['noodp'] || $options ['noydir']) {
-	add_action('wp_head', 'meta_robots');
-}
+
+add_action('wp_head', 'meta_robots');
+
 if ($options['login']) {
 	add_action('login_head', 'noindex_page');
 }
@@ -498,6 +535,10 @@ if ($options['disabledate'] || $options['disableauthor']) {
 if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
 	add_filter('wp_list_categories','nofollow_category_listing');
 }
-add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
 
+add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
+add_action('dbx_post_sidebar', array('RobotsMeta_Admin','noindex_option'));
+add_action('dbx_page_sidebar', array('RobotsMeta_Admin','noindex_option'));
+add_action('wp_insert_post', array('RobotsMeta_Admin','robotsmeta_insert_post'));
+add_action('activate_robots-meta.php', array('RobotsMeta_Admin','robotsmeta_addcolumn'));
 ?>
