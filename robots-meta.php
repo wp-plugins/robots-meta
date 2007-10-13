@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.0
+Version: 2.1
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -163,6 +163,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['trailingslash'] = false;
 				}
 				
+				if (isset($_POST['googleverify'])) {
+					$options['googleverify'] = $_POST['googleverify'];
+				}
+
+				if (isset($_POST['yahooverify'])) {
+					$options['yahooverify'] = $_POST['yahooverify'];
+				}
+
 				$opt = serialize($options);
 				update_option('RobotsMeta', $opt);
 			}
@@ -382,6 +390,27 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								</td>
 							</tr>
 						</table>
+						
+						<h3>Verification for Google Webmaster Tools and Yahoo! SiteExplorer</h3>
+						<table>
+							<tr>
+								<td style="width:400px;">
+									<input size="50" type="text" id="googleverify" name="googleverify" <?php echo 'value="'.$options['googleverify'].'" '; ?>/>
+								</td>
+								<td>
+									<label for="googleverify">Verify meta value for Google Webmaster Tools</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input size="50" type="text" id="yahooverify" name="yahooverify" <?php echo 'value="'.$options['yahooverify'].'" '; ?>/>
+								</td>
+								<td>
+									<label for="yahooverify">Verify meta value for Yahoo! Site Explorer</label>
+								</td>
+							</tr>
+						</table>
+						
 						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
 					</form>
 				</fieldset>
@@ -443,17 +472,21 @@ function meta_robots() {
 	global $options;
 	
 	$meta = "";
-
 	if (is_single() || is_page()) {
 		global $post;
 		if ($post->robotsmeta != "index,follow") {
 			$meta = $post->robotsmeta;	
 		}
 	}
-	if (is_search() || is_home() ) {
-		if ( $options['search'] || ($options['pagedhome'] && get_query_var('paged') > 1) ) {
+	if (is_search()) {
+		if ( $options['search'] ) {
 			$meta .= "noindex,follow";
 		} 
+	}
+	if (is_home()) {
+		if ($options['pagedhome'] && $paged && get_query_var('paged') > 1) {
+			$meta .= "noindex,follow";
+		}
 	}
 	if ($options['noodp']) {
 		if ($meta != "") {
@@ -504,6 +537,20 @@ function nofollow_category_listing($output) {
 	}
 }
 
+function google_verify() {
+	if (is_home()) {
+		global $options;
+		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
+	}
+}
+
+function yahoo_verify() {
+	if (is_home()) {
+		global $options;
+		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
+	}
+}
+
 $opt  = get_option('RobotsMeta');
 $options = unserialize($opt);
 
@@ -534,6 +581,12 @@ if ($options['disabledate'] || $options['disableauthor']) {
 }
 if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
 	add_filter('wp_list_categories','nofollow_category_listing');
+}
+if ($options['googleverify']) {
+	add_action('wp_head', 'google_verify');
+}
+if ($options['yahooverify']) {
+	add_action('wp_head', 'yahoo_verify');
 }
 
 add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
