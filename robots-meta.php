@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.1
+Version: 2.2
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -131,6 +131,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['nofollowcatpage'] = true;
 				} else {
 					$options['nofollowcatpage'] = false;
+				}
+
+				if (isset($_POST['nofollowmeta'])) {
+					$options['nofollowmeta'] = true;
+				} else {
+					$options['nofollowmeta'] = false;
 				}
 
 				if (isset($_POST['noodp'])) {
@@ -369,7 +375,8 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 							</tr>
 							<tr>
 								<td style="width: 30px;">
-									<input type="checkbox" id="nofollowcatsingle" name="nofollowcatsingle" <?php if ( $options['nofollowcatsingle'] == true ) echo ' checked="checked" '; ?>/></td>
+									<input type="checkbox" id="nofollowcatsingle" name="nofollowcatsingle" <?php if ( $options['nofollowcatsingle'] == true ) echo ' checked="checked" '; ?>/>
+								</td>
 								<td>
 									<label for="nofollowcatsingle">Nofollow category listings on single posts</label>
 								</td>
@@ -378,6 +385,21 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 		<?php if (!$options['disableexplanation']) { ?>
 						<p>
 							If you're showing a category listing on all your single posts and pages, you're "leaking" quite a bit of PageRank towards these pages, whereas you probably want your single posts to rank. To prevent that from happening, check the two boxes above, and you will nofollow all the links to your categories from single posts and/or pages.
+						</p>
+		<?php } ?>
+						<table>
+							<tr>
+								<td style="width: 30px;">
+									<input type="checkbox" id="nofollowmeta" name="nofollowmeta" <?php if ( $options['nofollowmeta'] == true ) echo ' checked="checked" '; ?>/>
+								</td>
+								<td>
+									<label for="nofollowmeta">Nofollow login and registration links</label>
+								</td>
+							</tr>
+						</table>
+		<?php if (!$options['disableexplanation']) { ?>
+						<p>
+							This might have happened to you: logging in to your admin panel to notice that is has become PR6... Nofollow those admin and login links, there's no use flowing PageRank to those pages!
 						</p>
 		<?php } ?>
 						<h3>Plugin settings</h3>
@@ -526,11 +548,15 @@ function archive_redirect() {
 	}
 }
 
+function nofollow_link($output) {
+	return str_replace('<a ','<a rel="nofollow" ',$output);
+}
+
 function nofollow_category_listing($output) {
 	global $options;
 	
 	if ( ($options['nofollowcatsingle'] && is_single() ) || ($options['nofollowcatpage'] && is_page() ) ) {
-		$output = str_replace('href=','rel="nofollow" href=',$output);
+		$output = nofollow_link($output);
 		return $output;
 	} else {
 		return $output;
@@ -582,6 +608,10 @@ if ($options['disabledate'] || $options['disableauthor']) {
 if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
 	add_filter('wp_list_categories','nofollow_category_listing');
 }
+if ($options['nofollowmeta']) {
+	add_filter('loginout','nofollow_link');
+	add_filter('register','nofollow_link');
+}
 if ($options['googleverify']) {
 	add_action('wp_head', 'google_verify');
 }
@@ -594,4 +624,5 @@ add_action('dbx_post_sidebar', array('RobotsMeta_Admin','noindex_option'));
 add_action('dbx_page_sidebar', array('RobotsMeta_Admin','noindex_option'));
 add_action('wp_insert_post', array('RobotsMeta_Admin','robotsmeta_insert_post'));
 add_action('activate_robots-meta.php', array('RobotsMeta_Admin','robotsmeta_addcolumn'));
+
 ?>

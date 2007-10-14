@@ -4,13 +4,13 @@ Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
 Tested up to: 2.3
-stable tag: 2.1
+stable tag: 2.2
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
 == Description ==
 
-There’s no easy way to add meta robots tags to WordPress pages, unless of course, when you install this plugin.
+There's no easy way to add meta robots tags to WordPress pages, unless of course, when you install this plugin.
 
 This plugin makes it possible (and very easy) to:
 
@@ -22,6 +22,7 @@ This plugin makes it possible (and very easy) to:
 * Prevent indexing of just your comment feeds.
 * Disable author and date-based archives.
 * Nofollow category listings on single pages and posts to prevent PageRank leakage.
+* Nofollow your login, register and admin links, because they really don't need PageRank.
 * Enforce a trailing slash on archives.
 * Edit your .htaccess and your robots.txt from within WordPress.
 * Assign robots meta tags to individual posts & pages.
