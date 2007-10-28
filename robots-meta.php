@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.2
+Version: 2.3
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -121,6 +121,30 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['login'] = false;
 				}
 
+				if (isset($_POST['noindexauthor'])) {
+					$options['noindexauthor'] = true;
+				} else {
+					$options['noindexauthor'] = false;
+				}
+
+				if (isset($_POST['noindexcat'])) {
+					$options['noindexcat'] = true;
+				} else {
+					$options['noindexcat'] = false;
+				}
+
+				if (isset($_POST['noindexdate'])) {
+					$options['noindexdate'] = true;
+				} else {
+					$options['noindexdate'] = false;
+				}
+				
+				if (isset($_POST['noindextag'])) {
+					$options['noindextag'] = true;
+				} else {
+					$options['noindextag'] = false;
+				}
+				
 				if (isset($_POST['nofollowcatsingle'])) {
 					$options['nofollowcatsingle'] = true;
 				} else {
@@ -287,6 +311,34 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<label for="admin">All admin pages</label>
 								</td>
 							</tr>
+							<tr>
+								<td>
+									<input type="checkbox" id="noindexauthor" name="noindexauthor" <?php if ( $options['noindexauthor'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="noindexauthor">Author archives</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="checkbox" id="noindexcat" name="noindexcat" <?php if ( $options['noindexcat'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="noindexcat">Category archives</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="checkbox" id="noindexdate" name="noindexdate" <?php if ( $options['noindexdate'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="noindexdate">Date-based archives</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="checkbox" id="noindextag" name="noindextag" <?php if ( $options['noindextag'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="noindextag">Tag archives</label>
+								</td>
+							</tr>
 						</table>
 		<?php if (!$options['disableexplanation']) { ?>
 						<p>
@@ -374,7 +426,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								</td>
 							</tr>
 							<tr>
-								<td style="width: 30px;">
+								<td>
 									<input type="checkbox" id="nofollowcatsingle" name="nofollowcatsingle" <?php if ( $options['nofollowcatsingle'] == true ) echo ' checked="checked" '; ?>/>
 								</td>
 								<td>
@@ -500,10 +552,8 @@ function meta_robots() {
 			$meta = $post->robotsmeta;	
 		}
 	}
-	if (is_search()) {
-		if ( $options['search'] ) {
-			$meta .= "noindex,follow";
-		} 
+	if ( (is_author() && $options['noindexauthor']) || (is_category() && $options['noindexcat']) || (is_date() && $options['noindexdate']) || (is_tag() && $options['noindextag']) || (is_search() && $options['search']) ) {
+		$meta .= "noindex,follow";
 	}
 	if (is_home()) {
 		if ($options['pagedhome'] && $paged && get_query_var('paged') > 1) {
@@ -555,7 +605,7 @@ function nofollow_link($output) {
 function nofollow_category_listing($output) {
 	global $options;
 	
-	if ( ($options['nofollowcatsingle'] && is_single() ) || ($options['nofollowcatpage'] && is_page() ) ) {
+	if ( ($options['nofollowcatsingle'] && (is_single() || is_search()) ) || ($options['nofollowcatpage'] && is_page() ) ) {
 		$output = nofollow_link($output);
 		return $output;
 	} else {
@@ -575,6 +625,26 @@ function yahoo_verify() {
 		global $options;
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
 	}
+}
+
+function add_nofollow($matches) {
+	$origin = get_bloginfo('wpurl');
+	if ((strpos($matches[2],$origin)) === false && ( strpos($matches[1],'rel="nofollow"') === false ) && ( strpos($matches[3],'rel="nofollow"') === false ) ) {
+//	if (strpos($matches[2],$origin) === false) {
+		$nofollow = ' rel="nofollow" ';
+	} else {
+		$nofollow = '';
+	}
+	return '<a href="' . $matches[2] . '"' . $nofollow . $matches[1] . $matches[3] . '>' . $matches[4] . '</a>';
+}
+
+function nofollow_index($output) {
+	// Loop through the content of each post and add a nofollow when it's on the main page or a category page.
+	if (is_home() || is_category()) {
+		$anchorPattern = '/<a (.*?)href="(.*?)"(.*?)>(.*?)<\/a>/i';
+		$output = preg_replace_callback($anchorPattern,'add_nofollow',$output);
+	}
+	return $output;
 }
 
 $opt  = get_option('RobotsMeta');
@@ -618,6 +688,8 @@ if ($options['googleverify']) {
 if ($options['yahooverify']) {
 	add_action('wp_head', 'yahoo_verify');
 }
+
+add_filter('the_content','nofollow_index');
 
 add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
 add_action('dbx_post_sidebar', array('RobotsMeta_Admin','noindex_option'));
