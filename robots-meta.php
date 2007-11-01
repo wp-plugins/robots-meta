@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.3
+Version: 2.6
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -19,11 +19,6 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 		} // end add_config_page()
 
-		function robotsmeta_addcolumn () {
-			global $wpdb;
-			$wpdb->query("ALTER TABLE $wpdb->posts ADD COLUMN robotsmeta varchar(64)");
-		}
-		
 		function robotsmeta_insert_post($pID) {
 			global $wpdb;
 			extract($_POST);
@@ -157,10 +152,22 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['nofollowcatpage'] = false;
 				}
 
+				if (isset($_POST['nofollowindexlinks'])) {
+					$options['nofollowindexlinks'] = true;
+				} else {
+					$options['nofollowindexlinks'] = false;
+				}
+
 				if (isset($_POST['nofollowmeta'])) {
 					$options['nofollowmeta'] = true;
 				} else {
 					$options['nofollowmeta'] = false;
+				}
+
+				if (isset($_POST['nofollowtaglinks'])) {
+					$options['nofollowtaglinks'] = true;
+				} else {
+					$options['nofollowtaglinks'] = false;
 				}
 
 				if (isset($_POST['noodp'])) {
@@ -201,6 +208,9 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['yahooverify'] = $_POST['yahooverify'];
 				}
 
+				if (isset($_POST['version'])) {
+					$options['version'] = $_POST['version'];
+				}
 				$opt = serialize($options);
 				update_option('RobotsMeta', $opt);
 			}
@@ -239,10 +249,11 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						max-width: 600px;
 					}
 				</style>
-				<h2>Robots Meta Configuration</h2>
+				<h2>Robots Meta <?php echo $options['version']; ?> Configuration</h2>
 				<fieldset>
 					<form action="" method="post" id="robotsmeta-conf">
-						<?php wp_nonce_field('robots-meta-udpatesettings'); ?>
+						<?php if (function_exists('wp_nonce_field') { wp_nonce_field('robots-meta-udpatesettings'); } ?>
+						<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
 						<h3>RSS Feeds</h3>
 						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
 <?php
@@ -433,6 +444,22 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<label for="nofollowcatsingle">Nofollow category listings on single posts</label>
 								</td>
 							</tr>
+							<tr>
+								<td>
+									<input type="checkbox" id="nofollowindexlinks" name="nofollowindexlinks" <?php if ( $options['nofollowindexlinks'] == true ) echo ' checked="checked" '; ?>/>
+								</td>
+								<td>
+									<label for="nofollowindexlinks">Nofollow outbound links on the frontpage</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input type="checkbox" id="nofollowtaglinks" name="nofollowtaglinks" <?php if ( $options['nofollowtaglinks'] == true ) echo ' checked="checked" '; ?>/>
+								</td>
+								<td>
+									<label for="nofollowtaglinks">Nofollow the links to your tag pages</label>
+								</td>
+							</tr>
 						</table>
 		<?php if (!$options['disableexplanation']) { ?>
 						<p>
@@ -551,11 +578,9 @@ function meta_robots() {
 		if ($post->robotsmeta != "index,follow") {
 			$meta = $post->robotsmeta;	
 		}
-	}
-	if ( (is_author() && $options['noindexauthor']) || (is_category() && $options['noindexcat']) || (is_date() && $options['noindexdate']) || (is_tag() && $options['noindextag']) || (is_search() && $options['search']) ) {
+	} else if ( (is_author() && $options['noindexauthor']) || (is_category() && $options['noindexcat']) || (is_date() && $options['noindexdate']) || (function_exists(is_tag) && is_tag() && $options['noindextag']) || (is_search() && $options['search']) ) {
 		$meta .= "noindex,follow";
-	}
-	if (is_home()) {
+	} else if (is_home()) {
 		if ($options['pagedhome'] && $paged && get_query_var('paged') > 1) {
 			$meta .= "noindex,follow";
 		}
@@ -573,6 +598,7 @@ function meta_robots() {
 		$meta .= "noydir";
 	}
 	if ($meta != "" && $meta != "index,follow") {
+		echo '<!--Meta tags added by Robots Meta: http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
 		echo '<meta name="robots" content="'.$meta.'" />'."\n";
 	}
 } 
@@ -647,6 +673,26 @@ function nofollow_index($output) {
 	return $output;
 }
 
+function nofollow_taglinks($output) {
+	$output = str_replace('rel="tag"','rel="nofollow tag"',$output);
+	return $output;
+}
+function robotsmeta_update() {
+	global $wpdb;
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
+	if ($options['version'] < "2.3") {
+		echo $wpdb->get_col_info('robotsmeta');
+		$wpdb->query("ALTER TABLE $wpdb->posts ADD COLUMN robotsmeta varchar(64)");
+		$options['version'] = "2.3";
+	}
+	if ($options['version'] < "25") {
+		$options['version'] = "25";
+	}
+	$opt = serialize($options);
+	update_option('RobotsMeta', $opt);
+}
+
 $opt  = get_option('RobotsMeta');
 $options = unserialize($opt);
 
@@ -682,19 +728,23 @@ if ($options['nofollowmeta']) {
 	add_filter('loginout','nofollow_link');
 	add_filter('register','nofollow_link');
 }
+if ($options['nofollowtaglinks']) {
+	add_filter('the_tags','nofollow_taglinks');
+}
 if ($options['googleverify']) {
 	add_action('wp_head', 'google_verify');
 }
 if ($options['yahooverify']) {
 	add_action('wp_head', 'yahoo_verify');
 }
-
-add_filter('the_content','nofollow_index');
-
+if ($options['nofollowindexlinks']) {
+	add_filter('the_content','nofollow_index');
+}
 add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
 add_action('dbx_post_sidebar', array('RobotsMeta_Admin','noindex_option'));
 add_action('dbx_page_sidebar', array('RobotsMeta_Admin','noindex_option'));
 add_action('wp_insert_post', array('RobotsMeta_Admin','robotsmeta_insert_post'));
-add_action('activate_robots-meta.php', array('RobotsMeta_Admin','robotsmeta_addcolumn'));
-
+if ($options['version'] < '25') {
+	robotsmeta_update();
+}
 ?>
