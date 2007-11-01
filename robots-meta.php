@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.5
+Version: 2.6
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -252,7 +252,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				<h2>Robots Meta <?php echo $options['version']; ?> Configuration</h2>
 				<fieldset>
 					<form action="" method="post" id="robotsmeta-conf">
-						<?php wp_nonce_field('robots-meta-udpatesettings'); ?>
+						<?php if (function_exists('wp_nonce_field') { wp_nonce_field('robots-meta-udpatesettings'); } ?>
 						<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
 						<h3>RSS Feeds</h3>
 						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
