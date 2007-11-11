@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.5
+Version: 2.7
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -48,9 +48,16 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.'));
 				check_admin_referer('robots-meta-udpaterobotstxt');
 				
-				$robots_file = "../robots.txt";
+				if (file_exists("../robots.txt")) {
+					$robots_file = "../robots.txt";
+				} else if (file_exists("../../robots.txt")) {
+					$robots_file = "../../robots.txt";
+				} else {
+					$robots_file = false;
+				}
+				
 				$robotsnew = stripslashes($_POST['robotsnew']);
-				if (is_writeable($robots_file)) {
+				if ($robots_file != false && is_writeable($robots_file)) {
 					$f = fopen($robots_file, 'w+');
 					fwrite($f, $robotsnew);
 					fclose($f);
@@ -60,7 +67,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess.'));
 				check_admin_referer('robots-meta-udpatehtaccesstxt');
 
-				$htaccess_file = "../.htaccess";
+				if (file_exists("../.htaccess")) {
+					$htaccess_file = "../.htaccess";
+				} else if (file_exists("../../.htaccess")) {
+					$htaccess_file = "../../.htaccess";
+				} else {
+					$htaccess_file = false;
+				}
+
 				$htaccessnew = stripslashes($_POST['htaccessnew']);
 				if (is_writeable($htaccess_file)) {
 					$f = fopen($htaccess_file, 'w+');
@@ -221,9 +235,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				$options['comments'] = true;
 			}
 
-			$robots_file = "../robots.txt";
-			if (!is_file($robots_file))
+			if (file_exists("../robots.txt")) {
+				$robots_file = "../robots.txt";
+			} else if (file_exists("../../robots.txt")) {
+				$robots_file = "../../robots.txt";
+			} else {
+				$robots_file = false;
 				$error = 1;
+			}
 			
 			if (!$error && filesize($robots_file) > 0) {
 				$f = fopen($robots_file, 'r');
@@ -232,10 +251,15 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 
 			$error = 0;
-			$htaccess_file = "../.htaccess";
-			if (!is_file($htaccess_file))
+			if (file_exists("../.htaccess")) {
+				$htaccess_file = "../.htaccess";
+			} else if (file_exists("../../.htaccess")) {
+				$htaccess_file = "../../.htaccess";
+			} else {
+				$htaccess_file = false;
 				$error = 1;
-			
+			}
+
 			if (!$error && filesize($htaccess_file) > 0) {
 				$f = fopen($htaccess_file, 'r');
 				$contentht = fread($f, filesize($htaccess_file));
@@ -516,6 +540,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					</form>
 				</fieldset>
 				<br/><br/>
+<?php if ($robots_file != false) { ?>
 				<h2>Robots.txt</h2>
 				<fieldset>
 					<form action="" method="post" id="robotstxt">
@@ -536,6 +561,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					</form>
 				</fieldset>
 				<br/><br/>
+<?php
+}
+if ($htaccess_file != false) {
+?>
 				<h2>.htaccess</h2>
 				<fieldset>
 					<form action="" method="post" id="htaccess">
@@ -555,6 +584,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						<?php } ?>
 					</form>
 				</fieldset>
+<?php } ?>
 			</div>
 			<?php
 		}	// end add_config_page()
