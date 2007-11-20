@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.5
+Version: 2.8
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -48,9 +48,16 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.'));
 				check_admin_referer('robots-meta-udpaterobotstxt');
 				
-				$robots_file = "../robots.txt";
+				if (file_exists("../robots.txt")) {
+					$robots_file = "../robots.txt";
+				} else if (file_exists("../../robots.txt")) {
+					$robots_file = "../../robots.txt";
+				} else {
+					$robots_file = false;
+				}
+				
 				$robotsnew = stripslashes($_POST['robotsnew']);
-				if (is_writeable($robots_file)) {
+				if ($robots_file != false && is_writeable($robots_file)) {
 					$f = fopen($robots_file, 'w+');
 					fwrite($f, $robotsnew);
 					fclose($f);
@@ -60,7 +67,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess.'));
 				check_admin_referer('robots-meta-udpatehtaccesstxt');
 
-				$htaccess_file = "../.htaccess";
+				if (file_exists("../.htaccess")) {
+					$htaccess_file = "../.htaccess";
+				} else if (file_exists("../../.htaccess")) {
+					$htaccess_file = "../../.htaccess";
+				} else {
+					$htaccess_file = false;
+				}
+
 				$htaccessnew = stripslashes($_POST['htaccessnew']);
 				if (is_writeable($htaccess_file)) {
 					$f = fopen($htaccess_file, 'w+');
@@ -204,6 +218,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['googleverify'] = $_POST['googleverify'];
 				}
 
+				if (isset($_POST['msverify'])) {
+					$options['msverify'] = $_POST['msverify'];
+				}
+
 				if (isset($_POST['yahooverify'])) {
 					$options['yahooverify'] = $_POST['yahooverify'];
 				}
@@ -221,9 +239,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				$options['comments'] = true;
 			}
 
-			$robots_file = "../robots.txt";
-			if (!is_file($robots_file))
+			if (file_exists("../robots.txt")) {
+				$robots_file = "../robots.txt";
+			} else if (file_exists("../../robots.txt")) {
+				$robots_file = "../../robots.txt";
+			} else {
+				$robots_file = false;
 				$error = 1;
+			}
 			
 			if (!$error && filesize($robots_file) > 0) {
 				$f = fopen($robots_file, 'r');
@@ -232,10 +255,15 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 
 			$error = 0;
-			$htaccess_file = "../.htaccess";
-			if (!is_file($htaccess_file))
+			if (file_exists("../.htaccess")) {
+				$htaccess_file = "../.htaccess";
+			} else if (file_exists("../../.htaccess")) {
+				$htaccess_file = "../../.htaccess";
+			} else {
+				$htaccess_file = false;
 				$error = 1;
-			
+			}
+
 			if (!$error && filesize($htaccess_file) > 0) {
 				$f = fopen($htaccess_file, 'r');
 				$contentht = fread($f, filesize($htaccess_file));
@@ -492,7 +520,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 							</tr>
 						</table>
 						
-						<h3>Verification for Google Webmaster Tools and Yahoo! SiteExplorer</h3>
+						<h3>Verification for Google, Yahoo! and MSN Webmaster Tools</h3>
 						<table>
 							<tr>
 								<td style="width:400px;">
@@ -510,12 +538,21 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<label for="yahooverify">Verify meta value for Yahoo! Site Explorer</label>
 								</td>
 							</tr>
+							<tr>
+								<td>
+									<input size="50" type="text" id="msverify" name="msverify" <?php echo 'value="'.$options['msverify'].'" '; ?>/>
+								</td>
+								<td>
+									<label for="msverify">Verify meta value for Microsoft Webmaster Portal</label>
+								</td>
+							</tr>
 						</table>
 						
 						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
 					</form>
 				</fieldset>
 				<br/><br/>
+<?php if ($robots_file != false) { ?>
 				<h2>Robots.txt</h2>
 				<fieldset>
 					<form action="" method="post" id="robotstxt">
@@ -536,6 +573,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					</form>
 				</fieldset>
 				<br/><br/>
+<?php
+}
+if ($htaccess_file != false) {
+?>
 				<h2>.htaccess</h2>
 				<fieldset>
 					<form action="" method="post" id="htaccess">
@@ -555,6 +596,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						<?php } ?>
 					</form>
 				</fieldset>
+<?php } ?>
 			</div>
 			<?php
 		}	// end add_config_page()
@@ -640,16 +682,23 @@ function nofollow_category_listing($output) {
 }
 
 function google_verify() {
-	if (is_home()) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
 		global $options;
 		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
 	}
 }
 
 function yahoo_verify() {
-	if (is_home()) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
 		global $options;
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
+	}
+}
+
+function ms_verify() {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+		global $options;
+		echo '<meta name="msvalidate.01" content="'.$options['msverify'].'" />'."\n";
 	}
 }
 
@@ -736,6 +785,9 @@ if ($options['googleverify']) {
 }
 if ($options['yahooverify']) {
 	add_action('wp_head', 'yahoo_verify');
+}
+if ($options['msverify']) {
+	add_action('wp_head', 'ms_verify');
 }
 if ($options['nofollowindexlinks']) {
 	add_filter('the_content','nofollow_index');
