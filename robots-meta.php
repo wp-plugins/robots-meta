@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.7
+Version: 2.8
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -216,6 +216,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				
 				if (isset($_POST['googleverify'])) {
 					$options['googleverify'] = $_POST['googleverify'];
+				}
+
+				if (isset($_POST['msverify'])) {
+					$options['msverify'] = $_POST['msverify'];
 				}
 
 				if (isset($_POST['yahooverify'])) {
@@ -516,7 +520,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 							</tr>
 						</table>
 						
-						<h3>Verification for Google Webmaster Tools and Yahoo! SiteExplorer</h3>
+						<h3>Verification for Google, Yahoo! and MSN Webmaster Tools</h3>
 						<table>
 							<tr>
 								<td style="width:400px;">
@@ -532,6 +536,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								</td>
 								<td>
 									<label for="yahooverify">Verify meta value for Yahoo! Site Explorer</label>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<input size="50" type="text" id="msverify" name="msverify" <?php echo 'value="'.$options['msverify'].'" '; ?>/>
+								</td>
+								<td>
+									<label for="msverify">Verify meta value for Microsoft Webmaster Portal</label>
 								</td>
 							</tr>
 						</table>
@@ -670,16 +682,23 @@ function nofollow_category_listing($output) {
 }
 
 function google_verify() {
-	if (is_home()) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
 		global $options;
 		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
 	}
 }
 
 function yahoo_verify() {
-	if (is_home()) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
 		global $options;
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
+	}
+}
+
+function ms_verify() {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+		global $options;
+		echo '<meta name="msvalidate.01" content="'.$options['msverify'].'" />'."\n";
 	}
 }
 
@@ -766,6 +785,9 @@ if ($options['googleverify']) {
 }
 if ($options['yahooverify']) {
 	add_action('wp_head', 'yahoo_verify');
+}
+if ($options['msverify']) {
+	add_action('wp_head', 'ms_verify');
 }
 if ($options['nofollowindexlinks']) {
 	add_filter('the_content','nofollow_index');
