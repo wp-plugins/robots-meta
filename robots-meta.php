@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.5
+Version: 2.9
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -48,9 +48,16 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.'));
 				check_admin_referer('robots-meta-udpaterobotstxt');
 				
-				$robots_file = "../robots.txt";
+				if (file_exists("../robots.txt")) {
+					$robots_file = "../robots.txt";
+				} else if (file_exists("../../robots.txt")) {
+					$robots_file = "../../robots.txt";
+				} else {
+					$robots_file = false;
+				}
+				
 				$robotsnew = stripslashes($_POST['robotsnew']);
-				if (is_writeable($robots_file)) {
+				if ($robots_file != false && is_writeable($robots_file)) {
 					$f = fopen($robots_file, 'w+');
 					fwrite($f, $robotsnew);
 					fclose($f);
@@ -60,7 +67,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess.'));
 				check_admin_referer('robots-meta-udpatehtaccesstxt');
 
-				$htaccess_file = "../.htaccess";
+				if (file_exists("../.htaccess")) {
+					$htaccess_file = "../.htaccess";
+				} else if (file_exists("../../.htaccess")) {
+					$htaccess_file = "../../.htaccess";
+				} else {
+					$htaccess_file = false;
+				}
+
 				$htaccessnew = stripslashes($_POST['htaccessnew']);
 				if (is_writeable($htaccess_file)) {
 					$f = fopen($htaccess_file, 'w+');
@@ -194,6 +208,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['search'] = false;
 				}
 
+				if (isset($_POST['redirectsearch'])) {
+					$options['redirectsearch'] = true;
+				} else {
+					$options['redirectsearch'] = false;
+				}
+
 				if (isset($_POST['trailingslash'])) {
 					$options['trailingslash'] = true;
 				} else {
@@ -202,6 +222,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				
 				if (isset($_POST['googleverify'])) {
 					$options['googleverify'] = $_POST['googleverify'];
+				}
+
+				if (isset($_POST['msverify'])) {
+					$options['msverify'] = $_POST['msverify'];
 				}
 
 				if (isset($_POST['yahooverify'])) {
@@ -221,9 +245,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				$options['comments'] = true;
 			}
 
-			$robots_file = "../robots.txt";
-			if (!is_file($robots_file))
+			if (file_exists("../robots.txt")) {
+				$robots_file = "../robots.txt";
+			} else if (file_exists("../../robots.txt")) {
+				$robots_file = "../../robots.txt";
+			} else {
+				$robots_file = false;
 				$error = 1;
+			}
 			
 			if (!$error && filesize($robots_file) > 0) {
 				$f = fopen($robots_file, 'r');
@@ -232,10 +261,15 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 
 			$error = 0;
-			$htaccess_file = "../.htaccess";
-			if (!is_file($htaccess_file))
+			if (file_exists("../.htaccess")) {
+				$htaccess_file = "../.htaccess";
+			} else if (file_exists("../../.htaccess")) {
+				$htaccess_file = "../../.htaccess";
+			} else {
+				$htaccess_file = false;
 				$error = 1;
-			
+			}
+
 			if (!$error && filesize($htaccess_file) > 0) {
 				$f = fopen($htaccess_file, 'r');
 				$contentht = fread($f, filesize($htaccess_file));
@@ -249,7 +283,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						max-width: 600px;
 					}
 				</style>
-				<h2>Robots Meta <?php echo $options['version']; ?> Configuration</h2>
+				<h2>Robots Meta Configuration</h2>
 				<fieldset>
 					<form action="" method="post" id="robotsmeta-conf">
 						<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('robots-meta-udpatesettings'); } ?>
@@ -297,6 +331,13 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<input type="checkbox" id="search" name="search" <?php if ( $options['search'] == true ) echo ' checked="checked" '; ?>/></td>
 								<td>
 									<label for="search">This site's search result pages</label>
+								</td>
+							</tr>
+							<tr>
+								<td style="width: 30px;">
+									<input type="checkbox" id="redirectsearch" name="redirectsearch" <?php if ( $options['redirectsearch'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="redirectsearch">Redirect search results pages when referrer is external</label>
 								</td>
 							</tr>
 							<tr>
@@ -492,7 +533,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 							</tr>
 						</table>
 						
-						<h3>Verification for Google Webmaster Tools and Yahoo! SiteExplorer</h3>
+						<h3>Verification for Google, Yahoo! and MSN Webmaster Tools</h3>
 						<table>
 							<tr>
 								<td style="width:400px;">
@@ -510,12 +551,21 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<label for="yahooverify">Verify meta value for Yahoo! Site Explorer</label>
 								</td>
 							</tr>
+							<tr>
+								<td>
+									<input size="50" type="text" id="msverify" name="msverify" <?php echo 'value="'.$options['msverify'].'" '; ?>/>
+								</td>
+								<td>
+									<label for="msverify">Verify meta value for Microsoft Webmaster Portal</label>
+								</td>
+							</tr>
 						</table>
 						
 						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
 					</form>
 				</fieldset>
 				<br/><br/>
+<?php if ($robots_file != false) { ?>
 				<h2>Robots.txt</h2>
 				<fieldset>
 					<form action="" method="post" id="robotstxt">
@@ -536,6 +586,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					</form>
 				</fieldset>
 				<br/><br/>
+<?php
+}
+if ($htaccess_file != false) {
+?>
 				<h2>.htaccess</h2>
 				<fieldset>
 					<form action="" method="post" id="htaccess">
@@ -555,6 +609,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						<?php } ?>
 					</form>
 				</fieldset>
+<?php } ?>
 			</div>
 			<?php
 		}	// end add_config_page()
@@ -570,7 +625,8 @@ function noindex_page() {
 }
 
 function meta_robots() {
-	global $options;
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
 	
 	$meta = "";
 	if (is_single() || is_page()) {
@@ -613,14 +669,26 @@ function add_trailingslash($url, $type) {
 	}
 }
 
-function archive_redirect() {
-	global $options;
-	
-	if ($options['disabledate'] && is_date()) {
-			wp_redirect(get_bloginfo('url'),301);
+function search_redirect() {
+	if ($_GET['s'] &&  strpos($_SERVER['HTTP_REFERER'], get_bloginfo('url')) === false) {
+		wp_redirect(get_bloginfo('url'),301);
+		exit;
 	}
-	if ($options['disableauthor'] && is_author()) {
-			wp_redirect(get_bloginfo('url'),301);
+}
+
+function archive_redirect() {
+	global $wp_query;
+	
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
+	
+	if ($options['disabledate'] && $wp_query->is_date) {
+		wp_redirect(get_bloginfo('url'),301);
+		exit;
+	}
+	if ($options['disableauthor'] && $wp_query->is_author) {
+		wp_redirect(get_bloginfo('url'),301);
+		exit;
 	}
 }
 
@@ -629,7 +697,8 @@ function nofollow_link($output) {
 }
 
 function nofollow_category_listing($output) {
-	global $options;
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
 	
 	if ( ($options['nofollowcatsingle'] && (is_single() || is_search()) ) || ($options['nofollowcatpage'] && is_page() ) ) {
 		$output = nofollow_link($output);
@@ -640,23 +709,32 @@ function nofollow_category_listing($output) {
 }
 
 function google_verify() {
-	if (is_home()) {
-		global $options;
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+		$opt  = get_option('RobotsMeta');
+		$options = unserialize($opt);
 		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
 	}
 }
 
 function yahoo_verify() {
-	if (is_home()) {
-		global $options;
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+		$opt  = get_option('RobotsMeta');
+		$options = unserialize($opt);
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
+	}
+}
+
+function ms_verify() {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+		$opt  = get_option('RobotsMeta');
+		$options = unserialize($opt);
+		echo '<meta name="msvalidate.01" content="'.$options['msverify'].'" />'."\n";
 	}
 }
 
 function add_nofollow($matches) {
 	$origin = get_bloginfo('wpurl');
 	if ((strpos($matches[2],$origin)) === false && ( strpos($matches[1],'rel="nofollow"') === false ) && ( strpos($matches[3],'rel="nofollow"') === false ) ) {
-//	if (strpos($matches[2],$origin) === false) {
 		$nofollow = ' rel="nofollow" ';
 	} else {
 		$nofollow = '';
@@ -719,7 +797,10 @@ if ($options['admin']) {
 	add_action('admin_head', 'noindex_page');
 }
 if ($options['disabledate'] || $options['disableauthor']) {
-	add_action('get_header', 'archive_redirect');
+	add_action('wp', 'archive_redirect');
+}
+if ($options['redirectsearch']) {
+	add_action('init', 'search_redirect');
 }
 if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
 	add_filter('wp_list_categories','nofollow_category_listing');
@@ -736,6 +817,9 @@ if ($options['googleverify']) {
 }
 if ($options['yahooverify']) {
 	add_action('wp_head', 'yahoo_verify');
+}
+if ($options['msverify']) {
+	add_action('wp_head', 'ms_verify');
 }
 if ($options['nofollowindexlinks']) {
 	add_filter('the_content','nofollow_index');
