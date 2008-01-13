@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
 Author: Joost de Valk
-Version: 2.8
+Version: 2.9
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -208,6 +208,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['search'] = false;
 				}
 
+				if (isset($_POST['redirectsearch'])) {
+					$options['redirectsearch'] = true;
+				} else {
+					$options['redirectsearch'] = false;
+				}
+
 				if (isset($_POST['trailingslash'])) {
 					$options['trailingslash'] = true;
 				} else {
@@ -277,7 +283,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 						max-width: 600px;
 					}
 				</style>
-				<h2>Robots Meta <?php echo $options['version']; ?> Configuration</h2>
+				<h2>Robots Meta Configuration</h2>
 				<fieldset>
 					<form action="" method="post" id="robotsmeta-conf">
 						<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('robots-meta-udpatesettings'); } ?>
@@ -325,6 +331,13 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									<input type="checkbox" id="search" name="search" <?php if ( $options['search'] == true ) echo ' checked="checked" '; ?>/></td>
 								<td>
 									<label for="search">This site's search result pages</label>
+								</td>
+							</tr>
+							<tr>
+								<td style="width: 30px;">
+									<input type="checkbox" id="redirectsearch" name="redirectsearch" <?php if ( $options['redirectsearch'] == true ) echo ' checked="checked" '; ?>/></td>
+								<td>
+									<label for="redirectsearch">Redirect search results pages when referrer is external</label>
 								</td>
 							</tr>
 							<tr>
@@ -612,7 +625,8 @@ function noindex_page() {
 }
 
 function meta_robots() {
-	global $options;
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
 	
 	$meta = "";
 	if (is_single() || is_page()) {
@@ -655,14 +669,26 @@ function add_trailingslash($url, $type) {
 	}
 }
 
-function archive_redirect() {
-	global $options;
-	
-	if ($options['disabledate'] && is_date()) {
-			wp_redirect(get_bloginfo('url'),301);
+function search_redirect() {
+	if ($_GET['s'] &&  strpos($_SERVER['HTTP_REFERER'], get_bloginfo('url')) === false) {
+		wp_redirect(get_bloginfo('url'),301);
+		exit;
 	}
-	if ($options['disableauthor'] && is_author()) {
-			wp_redirect(get_bloginfo('url'),301);
+}
+
+function archive_redirect() {
+	global $wp_query;
+	
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
+	
+	if ($options['disabledate'] && $wp_query->is_date) {
+		wp_redirect(get_bloginfo('url'),301);
+		exit;
+	}
+	if ($options['disableauthor'] && $wp_query->is_author) {
+		wp_redirect(get_bloginfo('url'),301);
+		exit;
 	}
 }
 
@@ -671,7 +697,8 @@ function nofollow_link($output) {
 }
 
 function nofollow_category_listing($output) {
-	global $options;
+	$opt  = get_option('RobotsMeta');
+	$options = unserialize($opt);
 	
 	if ( ($options['nofollowcatsingle'] && (is_single() || is_search()) ) || ($options['nofollowcatpage'] && is_page() ) ) {
 		$output = nofollow_link($output);
@@ -683,21 +710,24 @@ function nofollow_category_listing($output) {
 
 function google_verify() {
 	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
-		global $options;
+		$opt  = get_option('RobotsMeta');
+		$options = unserialize($opt);
 		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
 	}
 }
 
 function yahoo_verify() {
 	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
-		global $options;
+		$opt  = get_option('RobotsMeta');
+		$options = unserialize($opt);
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
 	}
 }
 
 function ms_verify() {
 	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
-		global $options;
+		$opt  = get_option('RobotsMeta');
+		$options = unserialize($opt);
 		echo '<meta name="msvalidate.01" content="'.$options['msverify'].'" />'."\n";
 	}
 }
@@ -705,7 +735,6 @@ function ms_verify() {
 function add_nofollow($matches) {
 	$origin = get_bloginfo('wpurl');
 	if ((strpos($matches[2],$origin)) === false && ( strpos($matches[1],'rel="nofollow"') === false ) && ( strpos($matches[3],'rel="nofollow"') === false ) ) {
-//	if (strpos($matches[2],$origin) === false) {
 		$nofollow = ' rel="nofollow" ';
 	} else {
 		$nofollow = '';
@@ -768,7 +797,10 @@ if ($options['admin']) {
 	add_action('admin_head', 'noindex_page');
 }
 if ($options['disabledate'] || $options['disableauthor']) {
-	add_action('get_header', 'archive_redirect');
+	add_action('wp', 'archive_redirect');
+}
+if ($options['redirectsearch']) {
+	add_action('init', 'search_redirect');
 }
 if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
 	add_filter('wp_list_categories','nofollow_category_listing');
