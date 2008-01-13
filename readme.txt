@@ -3,8 +3,8 @@ Contributors: joostdevalk
 Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
-Tested up to: 2.3
-stable tag: 2.6
+Tested up to: 2.3.2
+stable tag: 2.9.1
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
 
@@ -31,7 +31,8 @@ This plugin makes it possible (and very easy) to:
 More info:
 
 * [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/).
-* Other [Wordpress plugins](http://www.joostdevalk.nl/wordpress/) by the same author.
+* Read more about [WordPress SEO](http://www.joostdevalk.nl/wordpress-seo/) so you can get the most out of this plugin.
+* Check out the other [Wordpress plugins](http://www.joostdevalk.nl/wordpress/) by the same author.
 
 == Screenshots ==
 
