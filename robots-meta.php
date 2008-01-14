@@ -777,7 +777,7 @@ $options = unserialize($opt);
 global $wp_version;
 if ($wp_version >= "2.3") {
 	if ($options['allfeeds'] || $options['commentfeeds']) {
-		add_action('commentrss2_head', 'noindex_feed');
+		add_action('commentsrss2_head', 'noindex_feed');
 	}
 	if ($options['trailingslash']) {
 		add_filter('user_trailingslashit', 'add_trailingslash', 10, 2);
