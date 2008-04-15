@@ -2,9 +2,9 @@
 /*
 Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
-Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
+Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 2.9.5
+Version: 3.0
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -226,6 +226,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['search'] = true;
 				} else {
 					$options['search'] = false;
+				}
+				
+				if (isset($_POST['replacemetawidget'])) {
+					$options['replacemetawidget'] = true;
+				} else {
+					$options['replacemetawidget'] = false;
 				}
 
 				if (isset($_POST['redirectsearch'])) {
@@ -476,6 +482,13 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									This might have happened to you: logging in to your admin panel to notice that is has become PR6... Nofollow those admin and login links, there's no use flowing PageRank to those pages!
 								</p>
 								<?php } ?>
+								<input type="checkbox" id="replacemetawidget" name="replacemetawidget" <?php if ( $options['replacemetawidget'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="replacemetawidget">Replace the Meta Widget with a nofollowed one</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									By default the Meta widget links to your RSS feeds and to WordPress.org with a follow link, this will replace that widget by a custom one in which all these links are nofollowed.
+								</p>
+								<?php } ?>
 							</td>
 						</tr>
 						<tr>
@@ -678,6 +691,33 @@ function nofollow_taglinks($output) {
 	$output = str_replace('rel="tag"','rel="nofollow tag"',$output);
 	return $output;
 }
+
+function widget_jdvmeta_init() {
+	if (!function_exists('register_sidebar_widget'))
+		return;
+
+	function wp_jdvwidget_meta($args) {
+		extract($args);
+		$options = get_option('widget_meta');
+		$title = empty($options['title']) ? __('Meta') : $options['title'];
+	?>
+			<?php echo $before_widget; ?>
+				<?php echo $before_title . $title . $after_title; ?>
+				<ul>
+				<?php wp_register(); ?>
+				<li><?php wp_loginout(); ?></li>
+				<li><a rel="nofollow" href="<?php bloginfo('rss2_url'); ?>" title="<?php echo attribute_escape(__('Syndicate this site using RSS 2.0')); ?>"><?php _e('Entries <abbr title="Really Simple Syndication">RSS</abbr>'); ?></a></li>
+				<li><a rel="nofollow"href="<?php bloginfo('comments_rss2_url'); ?>" title="<?php echo attribute_escape(__('The latest comments to all posts in RSS')); ?>"><?php _e('Comments <abbr title="Really Simple Syndication">RSS</abbr>'); ?></a></li>
+				<li><a rel="nofollow" href="http://wordpress.org/" title="<?php echo attribute_escape(__('Powered by WordPress, state-of-the-art semantic personal publishing platform.')); ?>">WordPress.org</a></li>
+				<?php wp_meta(); ?>
+				</ul>
+			<?php echo $after_widget; ?>
+	<?php
+	}
+
+	register_sidebar_widget('meta','wp_jdvwidget_meta');
+}
+
 function robotsmeta_update() {
 	global $wpdb;
 	$opt  = get_option('RobotsMeta');
@@ -747,6 +787,10 @@ if ($options['msverify']) {
 if ($options['nofollowindexlinks']) {
 	add_filter('the_content','nofollow_index');
 }
+if ($options['replacemetawidget']) {
+	add_action('plugins_loaded', 'widget_jdvmeta_init');
+}
+
 add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
 add_action('admin_menu', array('RobotsMeta_Admin','meta_box'));
 
