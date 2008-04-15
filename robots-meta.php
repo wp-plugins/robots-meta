@@ -2,9 +2,9 @@
 /*
 Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
-Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds and handle unused archives.
+Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 2.9.3
+Version: 3.0
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -19,11 +19,30 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 		} // end add_config_page()
 
+		function meta_box() {
+			if ( function_exists('add_meta_box') ) {
+				add_meta_box('robotsmeta','Robots Meta',array('RobotsMeta_Admin','noindex_option_fill'),'post');
+				add_meta_box('robotsmeta','Robots Meta',array('RobotsMeta_Admin','noindex_option_fill'),'page');
+			} else {
+				add_action('dbx_post_sidebar', array('RobotsMeta_Admin','noindex_option'));
+				add_action('dbx_page_sidebar', array('RobotsMeta_Admin','noindex_option'));				
+			}
+		}
 		function robotsmeta_insert_post($pID) {
 			global $wpdb;
 			extract($_POST);
 			$wpdb->query("UPDATE $wpdb->posts SET robotsmeta = '$robotsmeta' WHERE ID = $pID");
 		}
+
+		function noindex_option_fill() {
+			?>
+			<label for="meta_robots_index_follow" class="selectit"><input id="meta_robots_index_follow" name="robotsmeta" type="radio" value="index,follow" <?php if ($robotsmeta == "index,follow") echo 'checked="checked"'?>/> index, follow</label><br/>
+			<label for="meta_robots_index_nofollow" class="selectit"><input id="meta_robots_index_nofollow" name="robotsmeta" type="radio" value="index,nofollow" <?php if ($robotsmeta == "index,nofollow") echo 'checked="checked"'?>/> index, nofollow</label><br/>
+			<label for="meta_robots_noindex_follow" class="selectit"><input id="meta_robots_noindex_follow" name="robotsmeta" type="radio" value="noindex,follow" <?php if ($robotsmeta == "noindex,follow") echo 'checked="checked"'?>/> noindex, follow</label><br/>
+			<label for="meta_robots_noindex_nofollow" class="selectit"><input id="meta_robots_noindex_nofollow" name="robotsmeta" type="radio" value="noindex,nofollow" <?php if ($robotsmeta == "noindex,nofollow") echo 'checked="checked"'?>/> noindex, nofollow</label><br/>
+			<?php
+		}
+
 		function noindex_option() {
 			global $post;
 			$robotsmeta = $post->robotsmeta;
@@ -34,13 +53,14 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			<fieldset id="robotsmeta-noindexoption" class="dbx-box">
 			<h3 class="dbx-handle">Robots Meta</h3>
 			<div class="dbx-content">
-				<label for="meta_robots_index_follow" class="selectit"><input id="meta_robots_index_follow" name="robotsmeta" type="radio" value="index,follow" <?php if ($robotsmeta == "index,follow") echo 'checked="checked"'?>/>index, follow</label>
-				<label for="meta_robots_index_nofollow" class="selectit"><input id="meta_robots_index_nofollow" name="robotsmeta" type="radio" value="index,nofollow" <?php if ($robotsmeta == "index,nofollow") echo 'checked="checked"'?>/>index, nofollow</label>
-				<label for="meta_robots_noindex_follow" class="selectit"><input id="meta_robots_noindex_follow" name="robotsmeta" type="radio" value="noindex,follow" <?php if ($robotsmeta == "noindex,follow") echo 'checked="checked"'?>/>noindex, follow</label>
-				<label for="meta_robots_noindex_nofollow" class="selectit"><input id="meta_robots_noindex_nofollow" name="robotsmeta" type="radio" value="noindex,nofollow" <?php if ($robotsmeta == "noindex,nofollow") echo 'checked="checked"'?>/>noindex, nofollow</label>
+				<label for="meta_robots_index_follow" class="selectit"><input id="meta_robots_index_follow" name="robotsmeta" type="radio" value="index,follow" <?php if ($robotsmeta == "index,follow") echo 'checked="checked"'?>/> index, follow</label>
+				<label for="meta_robots_index_nofollow" class="selectit"><input id="meta_robots_index_nofollow" name="robotsmeta" type="radio" value="index,nofollow" <?php if ($robotsmeta == "index,nofollow") echo 'checked="checked"'?>/> index, nofollow</label>
+				<label for="meta_robots_noindex_follow" class="selectit"><input id="meta_robots_noindex_follow" name="robotsmeta" type="radio" value="noindex,follow" <?php if ($robotsmeta == "noindex,follow") echo 'checked="checked"'?>/> noindex, follow</label>
+				<label for="meta_robots_noindex_nofollow" class="selectit"><input id="meta_robots_noindex_nofollow" name="robotsmeta" type="radio" value="noindex,nofollow" <?php if ($robotsmeta == "noindex,nofollow") echo 'checked="checked"'?>/> noindex, nofollow</label>
 			</div>
 			</fieldset>
-			<?php }
+			<?php 
+			}
 		}
 		
 		function config_page() {
@@ -207,6 +227,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				} else {
 					$options['search'] = false;
 				}
+				
+				if (isset($_POST['replacemetawidget'])) {
+					$options['replacemetawidget'] = true;
+				} else {
+					$options['replacemetawidget'] = false;
+				}
 
 				if (isset($_POST['redirectsearch'])) {
 					$options['redirectsearch'] = true;
@@ -278,341 +304,251 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			
 			?>
 			<div class="wrap">
-				<style type="text/css" media="screen">
-					p {
-						max-width: 600px;
-					}
-				</style>
 				<h2>Robots Meta Configuration</h2>
-				<fieldset>
-					<form action="" method="post" id="robotsmeta-conf">
+				<form action="" method="post" id="robotsmeta-conf">
+					<span style="border: 0; float: right; margin-top: -35px;" class="submit"><input type="submit" name="submit" value="Save Settings" /></span>
+					<table class="form-table">
 						<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('robots-meta-udpatesettings'); } ?>
 						<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
-						<h3>RSS Feeds</h3>
-						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
-<?php
-	global $wp_version;
-	if ($wp_version >= "2.3") {
-?>							
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="commentfeeds" name="commentfeeds" <?php if ( $options['commentfeeds'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="commentfeeds"><code>noindex</code> the comment RSS feeds</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							This will prevent the search engines from indexing your comment feeds.
-						</p>
-	<?php } ?>
-<?php } ?>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="allfeeds" name="allfeeds" <?php if ( $options['allfeeds'] == true ) echo ' checked="checked" '; ?>/> 
-								</td>
-								<td>
-									<label for="allfeeds"><code>noindex</code> <strong>all</strong> RSS feeds</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							This will prevent the search engines from indexing <strong>all your</strong> feeds. Highly discouraged.
-						</p>
-	<?php } ?>
-						<h3>Prevent search engines from indexing the following pages:</h3>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="search" name="search" <?php if ( $options['search'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="search">This site's search result pages</label>
-								</td>
-							</tr>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="redirectsearch" name="redirectsearch" <?php if ( $options['redirectsearch'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="redirectsearch">Redirect search results pages when referrer is external</label>
-								</td>
-							</tr>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="pagedhome" name="pagedhome" <?php if ( $options['pagedhome'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="pagedhome">Subpages of the homepage</label>
-								</td>
-							</tr>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="logininput" name="login" <?php if ( $options['login'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="logininput">The login and register pages</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="admin" name="admin" <?php if ( $options['admin'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="admin">All admin pages</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="noindexauthor" name="noindexauthor" <?php if ( $options['noindexauthor'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="noindexauthor">Author archives</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="noindexcat" name="noindexcat" <?php if ( $options['noindexcat'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="noindexcat">Category archives</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="noindexdate" name="noindexdate" <?php if ( $options['noindexdate'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="noindexdate">Date-based archives</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="noindextag" name="noindextag" <?php if ( $options['noindextag'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="noindextag">Tag archives</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							The first option prevents the search engines from indexing your search result pages, by a <code>noindex,follow</code> robots tag to them. The <code>follow</code> part means that search engine crawlers <em>will</em> spider the pages listed in the search results.<br/>
-							<br/>
-							The last two options prevent the search engines from indexing your login, register and admin pages.
-						</p>
-		<?php } ?>
-						<h3>DMOZ and Yahoo! Directory settings</h3>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="noodp" name="noodp" <?php if ( $options['noodp'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="noodp">Add <code>noodp</code> meta tag</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="noydir" name="noydir" <?php if ( $options['noydir'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="noydir">Add <code>noydir</code> meta robots tag</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							The first options prevents all search engines from using the DMOZ description for this site in the search results.<br/>
-							<br/>
-							The second options prevents Yahoo! from using the Yahoo! directory description for this site in the search results.<br/>
-						</p>
-		<?php } ?>
-<?php
-	if ($wp_version >= "2.3") {
-?>						<h3>Permalink settings</h3>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="trailingslash" name="trailingslash" <?php if ( $options['trailingslash'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="trailingslash">Enforce a trailing slash on all category and tag URL's</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							If you choose a permalink for your posts with <code>.html</code>, or anything else but a / on the end, this will force WordPress to add a trailing slash to non-post pages nonetheless.
-						</p>
-		<?php } ?>
-<?php
-	}
-?>						<h3>Archive settings</h3>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="disableauthor" name="disableauthor" <?php if ( $options['disableauthor'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="disableauthor">Disable the author archives</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="disabledate" name="disabledate" <?php if ( $options['disabledate'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="disabledate">Disable the date-based archives</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							If you're running a one author blog, the author archive will always look exactly the same as your homepage. And even though you may not link to it, others might, to do you harm. Disabling them here will make sure any link to those archives will be 301 redirected to the blog homepage.
-						</p>
-						<p>
-							For the date based archives, the same applies: they probably look a lot like your homepage, and could thus be seen as duplicate content.
-						</p>
-		<?php } ?>
-						<h3>Internal nofollow settings</h3>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="nofollowcatpage" name="nofollowcatpage" <?php if ( $options['nofollowcatpage'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="nofollowcatpage">Nofollow category listings on pages</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="nofollowcatsingle" name="nofollowcatsingle" <?php if ( $options['nofollowcatsingle'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="nofollowcatsingle">Nofollow category listings on single posts</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="nofollowindexlinks" name="nofollowindexlinks" <?php if ( $options['nofollowindexlinks'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="nofollowindexlinks">Nofollow outbound links on the frontpage</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input type="checkbox" id="nofollowtaglinks" name="nofollowtaglinks" <?php if ( $options['nofollowtaglinks'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="nofollowtaglinks">Nofollow the links to your tag pages</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							If you're showing a category listing on all your single posts and pages, you're "leaking" quite a bit of PageRank towards these pages, whereas you probably want your single posts to rank. To prevent that from happening, check the two boxes above, and you will nofollow all the links to your categories from single posts and/or pages.
-						</p>
-		<?php } ?>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="nofollowmeta" name="nofollowmeta" <?php if ( $options['nofollowmeta'] == true ) echo ' checked="checked" '; ?>/>
-								</td>
-								<td>
-									<label for="nofollowmeta">Nofollow login and registration links</label>
-								</td>
-							</tr>
-						</table>
-		<?php if (!$options['disableexplanation']) { ?>
-						<p>
-							This might have happened to you: logging in to your admin panel to notice that is has become PR6... Nofollow those admin and login links, there's no use flowing PageRank to those pages!
-						</p>
-		<?php } ?>
-						<h3>Plugin settings</h3>
-						<table>
-							<tr>
-								<td style="width: 30px;">
-									<input type="checkbox" id="disableexplanation" name="disableexplanation" <?php if ( $options['disableexplanation'] == true ) echo ' checked="checked" '; ?>/></td>
-								<td>
-									<label for="disableexplanation">Hide verbose explanations of settings</label>
-								</td>
-							</tr>
-						</table>
-						
-						<h3>Verification for Google, Yahoo! and MSN Webmaster Tools</h3>
-						<table>
-							<tr>
-								<td style="width:400px;">
-									<input size="50" type="text" id="googleverify" name="googleverify" <?php echo 'value="'.$options['googleverify'].'" '; ?>/>
-								</td>
-								<td>
-									<label for="googleverify">Verify meta value for Google Webmaster Tools</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input size="50" type="text" id="yahooverify" name="yahooverify" <?php echo 'value="'.$options['yahooverify'].'" '; ?>/>
-								</td>
-								<td>
-									<label for="yahooverify">Verify meta value for Yahoo! Site Explorer</label>
-								</td>
-							</tr>
-							<tr>
-								<td>
-									<input size="50" type="text" id="msverify" name="msverify" <?php echo 'value="'.$options['msverify'].'" '; ?>/>
-								</td>
-								<td>
-									<label for="msverify">Verify meta value for Microsoft Webmaster Portal</label>
-								</td>
-							</tr>
-						</table>
-						
-						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submit" value="Update Settings &raquo;" /></span>
-					</form>
-				</fieldset>
+						<tr>
+							<th scope="row" valign="top">Plugin settings</th>
+							<td>
+								<input type="checkbox" id="disableexplanation" name="disableexplanation" <?php if ( $options['disableexplanation'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="disableexplanation">Hide verbose explanations of settings</label><br/>
+							</td>
+						</tr>						
+						<tr valign="top">
+							<th scope="row" width="20%">RSS Feeds</th>
+							<td>
+								<input type="checkbox" id="commentfeeds" name="commentfeeds" <?php if ( $options['commentfeeds'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="commentfeeds"><code>noindex</code> the comment RSS feeds</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									This will prevent the search engines from indexing your comment feeds.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="allfeeds" name="allfeeds" <?php if ( $options['allfeeds'] == true ) echo ' checked="checked" '; ?>/> 
+								<label for="allfeeds"><code>noindex</code> <strong>all</strong> RSS feeds</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									This will prevent the search engines from indexing <strong>all your</strong> feeds. Highly discouraged.
+								</p>
+								<?php } ?>
+							</td>
+						</tr>
+						<tr valign="top">
+							<th scope="row">Prevent indexing of</th>
+							<td>
+								<input type="checkbox" id="search" name="search" <?php if ( $options['search'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="search">This site's search result pages</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Prevents the search engines from indexing your search result pages, by a <code>noindex,follow</code> robots tag to them. The <code>follow</code> part means that search engine crawlers <em>will</em> spider the pages listed in the search results.
+								</p>
+								<?php } ?>								
+								<input type="checkbox" id="logininput" name="login" <?php if ( $options['login'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="logininput">The login and register pages</label><br/>
+								<input type="checkbox" id="admin" name="admin" <?php if ( $options['admin'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="admin">All admin pages</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									The above two options prevent the search engines from indexing your login, register and admin pages.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="pagedhome" name="pagedhome" <?php if ( $options['pagedhome'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="pagedhome">Subpages of the homepage</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Prevent the search engines from indexing your subpages, if you want them to only index your category and / or tag archives.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="noindexauthor" name="noindexauthor" <?php if ( $options['noindexauthor'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noindexauthor">Author archives</label><br/>								
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									By default, WordPress creates author archives for each user, usually available under <code>/author/username</code>. If you have sufficient other archives, or yours is a one person blog, there's no need and you can best disable them or prevent search engines from indexing them.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="noindexdate" name="noindexdate" <?php if ( $options['noindexdate'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noindexdate">Date-based archives</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you want to offer your users the option of crawling your site by date, but have ample other ways for the search engines to find the content on your site, I highly encourage you to prevent your date-based archives from being indexed.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="noindexcat" name="noindexcat" <?php if ( $options['noindexcat'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noindexcat">Category archives</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you're using tags as your only way of structure on your site, you would probably be better off when you prevent your categories from being indexed.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="noindextag" name="noindextag" <?php if ( $options['noindextag'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noindextag">Tag archives</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Read the categories explanation above for categories and switch the words category and tag around ;)
+								</p>
+								<?php } ?>
+							</td>
+						</tr>
+						<tr valign="top">
+							<th scope="row">DMOZ<br/> and Yahoo! Directory</th>
+							<td>
+								<input type="checkbox" id="noodp" name="noodp" <?php if ( $options['noodp'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noodp">Add <code>noodp</code> meta tag</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Prevents all search engines from using the DMOZ description for this site in the search results.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="noydir" name="noydir" <?php if ( $options['noydir'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noydir">Add <code>noydir</code> meta robots tag</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Prevents Yahoo! from using the Yahoo! directory description for this site in the search results.
+								</p>
+								<?php } ?>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" valign="top">Permalink settings</th>
+							<td>
+								<input type="checkbox" id="trailingslash" name="trailingslash" <?php if ( $options['trailingslash'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="trailingslash">Enforce a trailing slash on all category and tag URL's</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you choose a permalink for your posts with <code>.html</code>, or anything else but a / on the end, this will force WordPress to add a trailing slash to non-post pages nonetheless.
+								</p>
+								<?php } ?>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" valign="top">Archive settings</th>
+							<td>
+								<input type="checkbox" id="disableauthor" name="disableauthor" <?php if ( $options['disableauthor'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="disableauthor">Disable the author archives</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you're running a one author blog, the author archive will always look exactly the same as your homepage. And even though you may not link to it, others might, to do you harm. Disabling them here will make sure any link to those archives will be 301 redirected to the blog homepage.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="disabledate" name="disabledate" <?php if ( $options['disabledate'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="disabledate">Disable the date-based archives</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									For the date based archives, the same applies: they probably look a lot like your homepage, and could thus be seen as duplicate content.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="redirectsearch" name="redirectsearch" <?php if ( $options['redirectsearch'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="redirectsearch">Redirect search results pages when referrer is external</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Redirect people coming to a search page on your site from elsewhere to your homepage, prevents people from linking to search results on your site.
+								</p>
+								<?php } ?>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" valign="top">Internal nofollow settings</th>
+							<td>
+								<input type="checkbox" id="nofollowcatpage" name="nofollowcatpage" <?php if ( $options['nofollowcatpage'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="nofollowcatpage">Nofollow category listings on pages</label><br/>
+								<input type="checkbox" id="nofollowcatsingle" name="nofollowcatsingle" <?php if ( $options['nofollowcatsingle'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="nofollowcatsingle">Nofollow category listings on single posts</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you're showing a category listing on all your single posts and pages, you're "leaking" quite a bit of PageRank towards these pages, whereas you probably want your single posts to rank. To prevent that from happening, check the two boxes above, and you will nofollow all the links to your categories from single posts and/or pages.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="nofollowindexlinks" name="nofollowindexlinks" <?php if ( $options['nofollowindexlinks'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="nofollowindexlinks">Nofollow outbound links on the frontpage</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you want to keep the link-juice on your front page to yourself, enable this, and you will only pass link-juice from your post pages.
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="nofollowtaglinks" name="nofollowtaglinks" <?php if ( $options['nofollowtaglinks'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="nofollowtaglinks">Nofollow the links to your tag pages</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									If you've decided to keep your tag pages from being indexed, you might as well stop throwing link-juice at them on each post...
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="nofollowmeta" name="nofollowmeta" <?php if ( $options['nofollowmeta'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="nofollowmeta">Nofollow login and registration links</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									This might have happened to you: logging in to your admin panel to notice that is has become PR6... Nofollow those admin and login links, there's no use flowing PageRank to those pages!
+								</p>
+								<?php } ?>
+								<input type="checkbox" id="replacemetawidget" name="replacemetawidget" <?php if ( $options['replacemetawidget'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="replacemetawidget">Replace the Meta Widget with a nofollowed one</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									By default the Meta widget links to your RSS feeds and to WordPress.org with a follow link, this will replace that widget by a custom one in which all these links are nofollowed.
+								</p>
+								<?php } ?>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row" valign="top">Webmaster Tools</th>
+							<td colspan="2">
+								<label for="googleverify">Verify meta value for Google Webmaster Tools:</label><br/>
+								<input size="50" type="text" id="googleverify" name="googleverify" <?php echo 'value="'.$options['googleverify'].'" '; ?>/><br/>
+								<label for="yahooverify">Verify meta value for Yahoo! Site Explorer:</label><br/>
+								<input size="50" type="text" id="yahooverify" name="yahooverify" <?php echo 'value="'.$options['yahooverify'].'" '; ?>/><br/>
+								<label for="msverify">Verify meta value for Microsoft Webmaster Portal:</label><br/>
+								<input size="50" type="text" id="msverify" name="msverify" <?php echo 'value="'.$options['msverify'].'" '; ?>/>
+							</td>
+						</tr>
+					</table>
+					<br/>
+					<span class="submit" style="border: 0;"><input type="submit" name="submit" value="Save Settings" /></span>
+				</form>
 				<br/><br/>
 <?php if ($robots_file != false) { ?>
 				<h2>Robots.txt</h2>
-				<fieldset>
-					<form action="" method="post" id="robotstxt">
-						<?php wp_nonce_field('robots-meta-udpaterobotstxt'); ?>
-						<?php
-							if (! is_writeable($robots_file)) {
-								echo "<p><em>If your robots.txt were writable, you could edit it from here.</em></p>";
-								$disabled = 'disabled="disabled"';
-							} else {
-								echo "<p>Edit the content of your robots.txt:</p>";
-								$disabled = "";
-							}
-						?>
-						<textarea cols="60" <?php echo $disabled; ?> rows="15" name="robotsnew"><?php echo $content ?></textarea>
-						<?php if ($disabled == "") { ?>
-						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submitrobots" value="Alter Robots.txt &raquo;" /></span>
-						<?php } ?>
-					</form>
-				</fieldset>
+				<form action="" method="post" id="robotstxt">
+					<?php wp_nonce_field('robots-meta-udpaterobotstxt'); ?>
+					<?php
+						if (!is_writeable($robots_file)) {
+							echo "<p><em>If your robots.txt were writable, you could edit it from here.</em></p>";
+							$disabled = 'disabled="disabled"';
+						} else {
+							echo "<p>Edit the content of your robots.txt:</p>";
+							$disabled = "";
+							?>
+							<textarea cols="60" <?php echo $disabled; ?> rows="15" name="robotsnew"><?php echo $content ?></textarea><br/>
+							<br/>
+							<span class="submit" style="border: 0;"><input type="submit" name="submitrobots" value="Save changes to Robots.txt" /></span>
+					<?php } ?>
+				</form>
 				<br/><br/>
 <?php
 }
 if ($htaccess_file != false) {
 ?>
 				<h2>.htaccess</h2>
-				<fieldset>
-					<form action="" method="post" id="htaccess">
-						<?php wp_nonce_field('robots-meta-udpatehtaccesstxt'); ?>
-						<?php
-							if (! is_writeable($htaccess_file)) {
-								echo "<p><em>If your .htaccess were writable, you could edit it from here.</em></p>";
-								$disabled = 'disabled="disabled"';
-							} else {
-								echo "<p>Edit the content of your .htaccess:</p>";
-								$disabled = "";
-							}
-						?>
-						<textarea cols="60" <?php echo $disabled; ?> rows="15" name="htaccessnew"><?php echo $contentht ?></textarea>
-						<?php if ($disabled == "") { ?>
-						<span style="float: right; margin-top: -30px;" class="submit"><input type="submit" name="submithtaccess" value="Alter .htaccess &raquo;" /></span>
-						<?php } ?>
-					</form>
-				</fieldset>
+				<form action="" method="post" id="htaccess">
+					<?php wp_nonce_field('robots-meta-udpatehtaccesstxt'); ?>
+					<?php
+						if (! is_writeable($htaccess_file)) {
+							echo "<p><em>If your .htaccess were writable, you could edit it from here.</em></p>";
+							$disabled = 'disabled="disabled"';
+						} else {
+							echo "<p>Edit the content of your .htaccess:</p>";
+							$disabled = "";
+							?>
+							<textarea cols="60" <?php echo $disabled; ?> rows="15" name="htaccessnew"><?php echo $contentht ?></textarea><br/>
+							<br/>
+							<span class="submit" style="border:0;"><input type="submit" name="submithtaccess" value="Save changes to .htaccess" /></span>
+					<?php } ?>
+				</form>
 <?php } ?>
 			</div>
 			<?php
-		}	// end add_config_page()
+	}
 	} // end class RobotsMeta
 }
 
@@ -755,6 +691,33 @@ function nofollow_taglinks($output) {
 	$output = str_replace('rel="tag"','rel="nofollow tag"',$output);
 	return $output;
 }
+
+function widget_jdvmeta_init() {
+	if (!function_exists('register_sidebar_widget'))
+		return;
+
+	function wp_jdvwidget_meta($args) {
+		extract($args);
+		$options = get_option('widget_meta');
+		$title = empty($options['title']) ? __('Meta') : $options['title'];
+	?>
+			<?php echo $before_widget; ?>
+				<?php echo $before_title . $title . $after_title; ?>
+				<ul>
+				<?php wp_register(); ?>
+				<li><?php wp_loginout(); ?></li>
+				<li><a rel="nofollow" href="<?php bloginfo('rss2_url'); ?>" title="<?php echo attribute_escape(__('Syndicate this site using RSS 2.0')); ?>"><?php _e('Entries <abbr title="Really Simple Syndication">RSS</abbr>'); ?></a></li>
+				<li><a rel="nofollow"href="<?php bloginfo('comments_rss2_url'); ?>" title="<?php echo attribute_escape(__('The latest comments to all posts in RSS')); ?>"><?php _e('Comments <abbr title="Really Simple Syndication">RSS</abbr>'); ?></a></li>
+				<li><a rel="nofollow" href="http://wordpress.org/" title="<?php echo attribute_escape(__('Powered by WordPress, state-of-the-art semantic personal publishing platform.')); ?>">WordPress.org</a></li>
+				<?php wp_meta(); ?>
+				</ul>
+			<?php echo $after_widget; ?>
+	<?php
+	}
+
+	register_sidebar_widget('meta','wp_jdvwidget_meta');
+}
+
 function robotsmeta_update() {
 	global $wpdb;
 	$opt  = get_option('RobotsMeta');
@@ -824,9 +787,13 @@ if ($options['msverify']) {
 if ($options['nofollowindexlinks']) {
 	add_filter('the_content','nofollow_index');
 }
+if ($options['replacemetawidget']) {
+	add_action('plugins_loaded', 'widget_jdvmeta_init');
+}
+
 add_action('admin_menu', array('RobotsMeta_Admin','add_config_page'));
-add_action('dbx_post_sidebar', array('RobotsMeta_Admin','noindex_option'));
-add_action('dbx_page_sidebar', array('RobotsMeta_Admin','noindex_option'));
+add_action('admin_menu', array('RobotsMeta_Admin','meta_box'));
+
 add_action('wp_insert_post', array('RobotsMeta_Admin','robotsmeta_insert_post'));
 if ($options['version'] < '25') {
 	robotsmeta_update();
