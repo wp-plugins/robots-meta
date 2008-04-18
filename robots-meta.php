@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0
+Version: 3.0.1
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -196,6 +196,12 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['nofollowmeta'] = true;
 				} else {
 					$options['nofollowmeta'] = false;
+				}
+
+				if (isset($_POST['nofollowcommentlinks'])) {
+					$options['nofollowcommentlinks'] = true;
+				} else {
+					$options['nofollowcommentlinks'] = false;
 				}
 
 				if (isset($_POST['nofollowtaglinks'])) {
@@ -482,6 +488,13 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									This might have happened to you: logging in to your admin panel to notice that is has become PR6... Nofollow those admin and login links, there's no use flowing PageRank to those pages!
 								</p>
 								<?php } ?>
+								<input type="checkbox" id="nofollowcommentlinks" name="nofollowcommentlinks" <?php if ( $options['nofollowcommentlinks'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="nofollowcommentlinks">Nofollow comments links</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Simple way to decrease the number of links on your pages: nofollow all the links pointing to comment sections.
+								</p>
+								<?php } ?>
 								<input type="checkbox" id="replacemetawidget" name="replacemetawidget" <?php if ( $options['replacemetawidget'] == true ) echo ' checked="checked" '; ?>/>
 								<label for="replacemetawidget">Replace the Meta Widget with a nofollowed one</label><br/>
 								<?php if (!$options['disableexplanation']) { ?>
@@ -733,6 +746,9 @@ function robotsmeta_update() {
 	$opt = serialize($options);
 	update_option('RobotsMeta', $opt);
 }
+function echo_nofollow() {
+	return 'rel="nofollow"';
+}
 
 $opt  = get_option('RobotsMeta');
 $options = unserialize($opt);
@@ -771,6 +787,9 @@ if ($options['nofollowcatsingle'] || $options['nofollowcatpage']) {
 if ($options['nofollowmeta']) {
 	add_filter('loginout','nofollow_link');
 	add_filter('register','nofollow_link');
+}
+if ($options['nofollowcommentlinks']) {
+	add_filter('comments_popup_link_attributes','echo_nofollow');
 }
 if ($options['nofollowtaglinks']) {
 	add_filter('the_tags','nofollow_taglinks');
