@@ -3,10 +3,10 @@ Contributors: joostdevalk
 Donate link: http://www.joostdevalk.nl/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
-Tested up to: 2.3.2
-stable tag: 2.9.3
+Tested up to: 2.5
+stable tag: 3.0.2
 
-This plugin makes it easy to add the appropriate meta robots tags to your pages, as well as do some other SEO related actions.
+This plugin makes it easy to add the appropriate meta robots tags to your pages, disable unused archives, nofollow unnecessary links as well as do some other SEO related actions.
 
 == Description ==
 
