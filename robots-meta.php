@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0.1
+Version: 3.0.2
 Author URI: http://www.joostdevalk.nl/
 */
 
@@ -747,7 +747,7 @@ function robotsmeta_update() {
 	update_option('RobotsMeta', $opt);
 }
 function echo_nofollow() {
-	return 'rel="nofollow"';
+	return ' rel="nofollow"';
 }
 
 $opt  = get_option('RobotsMeta');
