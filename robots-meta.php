@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Robots Meta
-Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
+Plugin URI: http://yoast.com/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0.2
-Author URI: http://www.joostdevalk.nl/
+Version: 3.0.3
+Author URI: http://yoast.com/
 */
 
 if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
@@ -173,7 +173,13 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				} else {
 					$options['noindextag'] = false;
 				}
-				
+
+				if (isset($_POST['noarchive'])) {
+					$options['noarchive'] = true;
+				} else {
+					$options['noarchive'] = false;
+				}
+
 				if (isset($_POST['nofollowcatsingle'])) {
 					$options['nofollowcatsingle'] = true;
 				} else {
@@ -396,8 +402,16 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 									Read the categories explanation above for categories and switch the words category and tag around ;)
 								</p>
 								<?php } ?>
+								<input type="checkbox" id="noarchive" name="noarchive" <?php if ( $options['noarchive'] == true ) echo ' checked="checked" '; ?>/>
+								<label for="noarchive">Add <code>noarchive</code> meta tag</label><br/>
+								<?php if (!$options['disableexplanation']) { ?>
+								<p>
+									Prevents archive.org and google to put copies of your pages into their archive/cache.to put copies of your pages into their archive/cache.
+								</p>
+								<?php } ?>
 							</td>
 						</tr>
+
 						<tr valign="top">
 							<th scope="row">DMOZ<br/> and Yahoo! Directory</th>
 							<td>
@@ -602,8 +616,14 @@ function meta_robots() {
 		}
 		$meta .= "noydir";
 	}
+	if ($options['noarchive']) {
+		if ($meta != "") {
+			$meta .= ",";
+		}
+		$meta .= "noarchive";
+	}
 	if ($meta != "" && $meta != "index,follow") {
-		echo '<!--Meta tags added by Robots Meta: http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
+		echo '<!--Meta tags added by Robots Meta: http://yoast.com/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
 		echo '<meta name="robots" content="'.$meta.'" />'."\n";
 	}
 } 
