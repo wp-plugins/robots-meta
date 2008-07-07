@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Robots Meta
-Plugin URI: http://yoast.com/wordpress/robots-meta/
+Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0.4
-Author URI: http://yoast.com/
+Version: 3.0.5
+Author URI: http://www.joostdevalk.nl/
 */
 
 if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
@@ -107,172 +107,28 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the Robots Meta options.'));
 				check_admin_referer('robots-meta-udpatesettings');
 				
-				if (isset($_POST['admin'])) {
-					$options['admin'] = true;
-				} else {
-					$options['admin'] = false;
+				foreach (array('admin', 'allfeeds', 'commentfeeds', 'disableauthor', 'disabledate', 
+				          'disableexplanation', 'login', 'noindexauthor', 'noindexcat', 'noindexdate', 
+					  'noindextag', 'noarchive', 'nofollowcatsingle', 'nofollowcatpage', 
+					  'nofollowindexlinks', 'nofollowmeta', 'nofollowmeta', 'nofollowcommentlinks', 
+					  'nofollowtaglinks', 'noodp', 'noydir', 'pagedhome', 'search', 'replacemetawidget',
+					  'redirectsearch', 'trailingslash') 
+				as $option_name) {
+					if (isset($_POST[$option_name])) {
+						$options[$option_name] = true;
+					} else {
+						$options[$option_name] = false;
+					}
 				}
-
-				if (isset($_POST['allfeeds'])) {
+			        foreach (array('googleverify', 'msverify', 'yahooverify', 'version') as $option_name) {
+					if (isset($_POST[$option_name])) {
+						$options[$option_name] = $_POST[$option_name];
+					}
+				}
+                                if ($options['allfeeds']) {
 					$options['commentfeeds'] = true;
-					$options['allfeeds'] = true;
-				} else {
-					$options['allfeeds'] = false;
-				}
-
-				if (isset($_POST['commentfeeds'])) {
-					$options['commentfeeds'] = true;
-				} else {
-					$options['commentfeeds'] = false;
-				}
-
-				if (isset($_POST['disableauthor'])) {
-					$options['disableauthor'] = true;
-				} else {
-					$options['disableauthor'] = false;
-				}
-
-				if (isset($_POST['disabledate'])) {
-					$options['disabledate'] = true;
-				} else {
-					$options['disabledate'] = false;
-				}
-
-				if (isset($_POST['disableexplanation'])) {
-					$options['disableexplanation'] = true;
-				} else {
-					$options['disableexplanation'] = false;
-				}
-
-				if (isset($_POST['login'])) {
-					$options['login'] = true;
-				} else {
-					$options['login'] = false;
-				}
-
-				if (isset($_POST['noindexauthor'])) {
-					$options['noindexauthor'] = true;
-				} else {
-					$options['noindexauthor'] = false;
-				}
-
-				if (isset($_POST['noindexcat'])) {
-					$options['noindexcat'] = true;
-				} else {
-					$options['noindexcat'] = false;
-				}
-
-				if (isset($_POST['noindexdate'])) {
-					$options['noindexdate'] = true;
-				} else {
-					$options['noindexdate'] = false;
-				}
+				} 
 				
-				if (isset($_POST['noindextag'])) {
-					$options['noindextag'] = true;
-				} else {
-					$options['noindextag'] = false;
-				}
-
-				if (isset($_POST['noarchive'])) {
-					$options['noarchive'] = true;
-				} else {
-					$options['noarchive'] = false;
-				}
-
-				if (isset($_POST['nofollowcatsingle'])) {
-					$options['nofollowcatsingle'] = true;
-				} else {
-					$options['nofollowcatsingle'] = false;
-				}
-
-				if (isset($_POST['nofollowcatpage'])) {
-					$options['nofollowcatpage'] = true;
-				} else {
-					$options['nofollowcatpage'] = false;
-				}
-
-				if (isset($_POST['nofollowindexlinks'])) {
-					$options['nofollowindexlinks'] = true;
-				} else {
-					$options['nofollowindexlinks'] = false;
-				}
-
-				if (isset($_POST['nofollowmeta'])) {
-					$options['nofollowmeta'] = true;
-				} else {
-					$options['nofollowmeta'] = false;
-				}
-
-				if (isset($_POST['nofollowcommentlinks'])) {
-					$options['nofollowcommentlinks'] = true;
-				} else {
-					$options['nofollowcommentlinks'] = false;
-				}
-
-				if (isset($_POST['nofollowtaglinks'])) {
-					$options['nofollowtaglinks'] = true;
-				} else {
-					$options['nofollowtaglinks'] = false;
-				}
-
-				if (isset($_POST['noodp'])) {
-					$options['noodp'] = true;
-				} else {
-					$options['noodp'] = false;
-				}
-
-				if (isset($_POST['noydir'])) {
-					$options['noydir'] = true;
-				} else {
-					$options['noydir'] = false;
-				}
-				
-				if (isset($_POST['pagedhome'])) {
-					$options['pagedhome'] = true;
-				} else {
-					$options['pagedhome'] = false;
-				}
-
-				if (isset($_POST['search'])) {
-					$options['search'] = true;
-				} else {
-					$options['search'] = false;
-				}
-				
-				if (isset($_POST['replacemetawidget'])) {
-					$options['replacemetawidget'] = true;
-				} else {
-					$options['replacemetawidget'] = false;
-				}
-
-				if (isset($_POST['redirectsearch'])) {
-					$options['redirectsearch'] = true;
-				} else {
-					$options['redirectsearch'] = false;
-				}
-
-				if (isset($_POST['trailingslash'])) {
-					$options['trailingslash'] = true;
-				} else {
-					$options['trailingslash'] = false;
-				}
-				
-				if (isset($_POST['googleverify'])) {
-					$options['googleverify'] = $_POST['googleverify'];
-				}
-
-				if (isset($_POST['msverify'])) {
-					$options['msverify'] = $_POST['msverify'];
-				}
-
-				if (isset($_POST['yahooverify'])) {
-					$options['yahooverify'] = $_POST['yahooverify'];
-				}
-
-				if (isset($_POST['version'])) {
-					$options['version'] = $_POST['version'];
-				}
 				$opt = serialize($options);
 				update_option('RobotsMeta', $opt);
 			}
@@ -623,7 +479,7 @@ function meta_robots() {
 		$meta .= "noarchive";
 	}
 	if ($meta != "" && $meta != "index,follow") {
-		echo '<!--Meta tags added by Robots Meta: http://yoast.com/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
+		echo '<!--Meta tags added by Robots Meta: http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
 		echo '<meta name="robots" content="'.$meta.'" />'."\n";
 	}
 } 
