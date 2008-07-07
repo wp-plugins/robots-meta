@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://yoast.com/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0.3
+Version: 3.0.4
 Author URI: http://yoast.com/
 */
 
@@ -15,7 +15,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 		function add_config_page() {
 			global $wpdb;
 			if ( function_exists('add_submenu_page') ) {
-				add_submenu_page('plugins.php','Robots Meta Configuration', 'Robots Meta', 1, basename(__FILE__),array('RobotsMeta_Admin','config_page'));
+				add_submenu_page('plugins.php','Robots Meta Configuration', 'Robots Meta', 8, basename(__FILE__),array('RobotsMeta_Admin','config_page'));
 			}
 		} // end add_config_page()
 
