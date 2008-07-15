@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Robots Meta
-Plugin URI: http://www.joostdevalk.nl/wordpress/robots-meta/
+Plugin URI: http://yoast.com/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0.5
-Author URI: http://www.joostdevalk.nl/
+Version: 3.0.6
+Author URI: http://yoast.com/
 */
 
 if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
@@ -129,12 +129,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					$options['commentfeeds'] = true;
 				} 
 				
-				$opt = serialize($options);
-				update_option('RobotsMeta', $opt);
+				update_option('RobotsMeta', $options);
 			}
 			
-			$opt  = get_option('RobotsMeta');
-			$options = unserialize($opt);
+			$options  = get_option('RobotsMeta');
 			if ($options['allfeeds']) {
 				$options['comments'] = true;
 			}
@@ -444,8 +442,7 @@ function noindex_page() {
 }
 
 function meta_robots() {
-	$opt  = get_option('RobotsMeta');
-	$options = unserialize($opt);
+	$options  = get_option('RobotsMeta');
 	
 	$meta = "";
 	if (is_single() || is_page()) {
@@ -504,8 +501,7 @@ function search_redirect() {
 function archive_redirect() {
 	global $wp_query;
 	
-	$opt  = get_option('RobotsMeta');
-	$options = unserialize($opt);
+	$options  = get_option('RobotsMeta');
 	
 	if ($options['disabledate'] && $wp_query->is_date) {
 		wp_redirect(get_bloginfo('url'),301);
@@ -522,8 +518,7 @@ function nofollow_link($output) {
 }
 
 function nofollow_category_listing($output) {
-	$opt  = get_option('RobotsMeta');
-	$options = unserialize($opt);
+	$options  = get_option('RobotsMeta');
 	
 	if ( ($options['nofollowcatsingle'] && (is_single() || is_search()) ) || ($options['nofollowcatpage'] && is_page() || is_category() || is_tag() ) ) {
 		$output = nofollow_link($output);
@@ -535,24 +530,21 @@ function nofollow_category_listing($output) {
 
 function google_verify() {
 	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
-		$opt  = get_option('RobotsMeta');
-		$options = unserialize($opt);
+		$options = get_option('RobotsMeta');
 		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
 	}
 }
 
 function yahoo_verify() {
 	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
-		$opt  = get_option('RobotsMeta');
-		$options = unserialize($opt);
+		$options = get_option('RobotsMeta');
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
 	}
 }
 
 function ms_verify() {
 	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
-		$opt  = get_option('RobotsMeta');
-		$options = unserialize($opt);
+		$options = get_option('RobotsMeta');
 		echo '<meta name="msvalidate.01" content="'.$options['msverify'].'" />'."\n";
 	}
 }
@@ -609,8 +601,7 @@ function widget_jdvmeta_init() {
 
 function robotsmeta_update() {
 	global $wpdb;
-	$opt  = get_option('RobotsMeta');
-	$options = unserialize($opt);
+	$options = get_option('RobotsMeta');
 	if ($options['version'] < "2.3") {
 		echo $wpdb->get_col_info('robotsmeta');
 		$wpdb->query("ALTER TABLE $wpdb->posts ADD COLUMN robotsmeta varchar(64)");
@@ -619,17 +610,15 @@ function robotsmeta_update() {
 	if ($options['version'] < "25") {
 		$options['version'] = "25";
 	}
-	$opt = serialize($options);
-	update_option('RobotsMeta', $opt);
+	update_option('RobotsMeta', $options);
 }
 function echo_nofollow() {
 	return ' rel="nofollow"';
 }
 
-$opt  = get_option('RobotsMeta');
-$options = unserialize($opt);
-
+$options = get_option('RobotsMeta');
 global $wp_version;
+
 if ($wp_version >= "2.3") {
 	if ($options['allfeeds'] || $options['commentfeeds']) {
 		add_action('commentsrss2_head', 'noindex_feed');
