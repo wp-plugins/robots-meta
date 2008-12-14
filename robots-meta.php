@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://yoast.com/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.0.8
+Version: 3.0.9
 Author URI: http://yoast.com/
 */
 
@@ -529,21 +529,21 @@ function nofollow_category_listing($output) {
 }
 
 function google_verify() {
-	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) || (function_exists('is_front_page') && is_front_page()) ) {
 		$options = get_option('RobotsMeta');
 		echo '<meta name="verify-v1" content="'.$options['googleverify'].'" />'."\n";
 	}
 }
 
 function yahoo_verify() {
-	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) || (function_exists('is_front_page') && is_front_page()) {
 		$options = get_option('RobotsMeta');
 		echo '<meta name="y_key" content="'.$options['yahooverify'].'" />'."\n";
 	}
 }
 
 function ms_verify() {
-	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) ) {
+	if (is_home() || (function_exists('is_frontpage') && is_frontpage()) || (function_exists('is_front_page') && is_front_page()) {
 		$options = get_option('RobotsMeta');
 		echo '<meta name="msvalidate.01" content="'.$options['msverify'].'" />'."\n";
 	}
