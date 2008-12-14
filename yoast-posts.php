@@ -31,10 +31,11 @@ if (!class_exists('YoastPosts')) {
 			return $widgets;
 		}
 
-		function widget($args) {
+		function widget($args = array()) {
 			$show = get_option('show_yoast_widget');
 			if ($show != 'noshow') {
-				extract( $args, EXTR_SKIP );
+				if (is_array($args))
+					extract( $args, EXTR_SKIP );
 				echo $before_widget.$before_title.$widget_name.$after_title;
 				echo '<a href="http://yoast.com/"><img style="margin: 0 0 5px 5px;" src="http://yoast.com/images/yoast-logo-rss.png" align="right" alt="Yoast"/></a>';
 				include_once(ABSPATH . WPINC . '/rss.php');
@@ -44,11 +45,10 @@ if (!class_exists('YoastPosts')) {
 				<?php if (empty($items)) echo '<li>No items</li>';
 				else
 				foreach ( $items as $item ) : ?>
-				<a style="font-size: 14px; font-weight:bold;" href='<?php echo $item['link']; ?>' title='<?php echo $item['title']; ?>'><?php echo $item['title']; ?></a> <span style="font-size: 14px; color: #aaa;"><?php echo date('j F Y',strtotime($item['pubdate'])); ?></span><br/>
-				<?php echo substr($item['summary'],0,strpos($item['summary'], "This is a post from")); ?>
-				<br/>
+				<a style="font-size: 14px; font-weight:bold;" href='<?php echo $item['link']; ?>' title='<?php echo $item['title']; ?>'><?php echo $item['title']; ?></a><br/> 
+				<p style="font-size: 10px; color: #aaa;"><?php echo date('j F Y',strtotime($item['pubdate'])); ?></p>
+				<p><?php echo substr($item['summary'],0,strpos($item['summary'], "This is a post from")); ?></p>
 				<?php endforeach;
-				echo '<p style="float:right;"><a href="?show_yoast_widget=true">Remove this widget</a></p>';
 				echo $after_widget;
 			}
 		}
