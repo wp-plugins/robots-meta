@@ -218,7 +218,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								</p>
 								<?php } ?>								
 								<input type="checkbox" id="logininput" name="login" <?php if ( $options['login'] == true ) echo ' checked="checked" '; ?>/>
-								<label for="logininput">The login and register pages</label><br/>
+								<label for="logininput">The login and register pages</label> (warning: don't enable this if you have the <a href="http://wordpress.org/extend/plugins/minimeta-widget/">minimeta widget</a> installed!)<br/>
 								<input type="checkbox" id="admin" name="admin" <?php if ( $options['admin'] == true ) echo ' checked="checked" '; ?>/>
 								<label for="admin">All admin pages</label><br/>
 								<?php if (!$options['disableexplanation']) { ?>
