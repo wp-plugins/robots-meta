@@ -1,10 +1,10 @@
 === Plugin Name ===
 Contributors: joostdevalk
-Donate link: http://www.joostdevalk.nl/donate/
+Donate link: http://yoast.com/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.2
-Tested up to: 2.5
-stable tag: 3.0.2
+Tested up to: 2.5.1
+stable tag: 3.0.11
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, disable unused archives, nofollow unnecessary links as well as do some other SEO related actions.
 
@@ -27,12 +27,13 @@ This plugin makes it possible (and very easy) to:
 * Edit your .htaccess and your robots.txt from within WordPress.
 * Assign robots meta tags to individual posts & pages.
 * Verify your site with Google Webmaster Tools and Yahoo! Site Explorer.
+* Add noarchive tags to your blog (Thanks to [Henryk Gerlach](http://blog.littleimpact.de/index.php/2008/07/03/noarchive-tag-for-robots-meta/)). 
 
 More info:
 
-* [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/).
-* Read more about [WordPress SEO](http://www.joostdevalk.nl/wordpress-seo/) so you can get the most out of this plugin.
-* Check out the other [Wordpress plugins](http://www.joostdevalk.nl/wordpress/) by the same author.
+* [Robots Meta plugin](http://yoast.com/wordpress/meta-robots-wordpress-plugin/).
+* Read more about [WordPress SEO](http://yoast.com/articles/wordpress-seo/) so you can get the most out of this plugin.
+* Check out the other [Wordpress plugins](http://yoast.com/wordpress/) by the same author.
 
 == Screenshots ==
 
@@ -41,16 +42,16 @@ More info:
 
 == More info ==
 
-* For more info, version history, etc. check out the page on my site about the [Robots Meta plugin](http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/). 
-* To check out the other WordPress plugins I wrote, check out my [WordPress plugins](http://www.joostdevalk.nl/wordpress/) page.
-* For updates about this plugin and other plugins I created read my [SEO blog](http://www.joostdevalk.nl/)
+* For more info, version history, etc. check out the page on my site about the [Robots Meta plugin](http://yoast.com/wordpress/meta-robots-wordpress-plugin/). 
+* To check out the other WordPress plugins I wrote, check out my [WordPress plugins](http://yoast.com/wordpress/) page.
+* For updates about this plugin and other plugins I created read my [SEO blog](http://yoast.com/)
 
 == Installation ==
 
 Installation is easy:
 
-* Download the plugin.
-* Copy robots-meta.php to the plugins directory of your blog.
+* Download and unzip the plugin.
+* Copy the `robots-meta` folder to the plugins directory of your blog.
 * Enable the plugin in your admin panel.
 * An options panel will appear under Plugins.
 * Choose the settings you want.
