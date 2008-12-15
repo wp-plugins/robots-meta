@@ -16,9 +16,32 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			global $wpdb;
 			if ( function_exists('add_submenu_page') ) {
 				add_submenu_page('plugins.php','Robots Meta Configuration', 'Robots Meta', 8, basename(__FILE__),array('RobotsMeta_Admin','config_page'));
+				add_filter( 'plugin_action_links', array( 'RobotsMeta_Admin', 'filter_plugin_actions'), 10, 2 );
+				add_filter( 'ozh_adminmenu_icon', array( 'RobotsMeta_Admin', 'add_ozh_adminmenu_icon' ) );				
 			}
 		} // end add_config_page()
 
+		function add_ozh_adminmenu_icon( $hook ) {
+			static $bmicon;
+			if (!$bmicon) {
+				$bmicon = WP_CONTENT_URL . '/plugins/' . plugin_basename(dirname(__FILE__)). '/tag.png';
+			}
+			if ($hook == 'robots-meta.php') return $bmicon;
+			return $hook;
+		}
+
+		function filter_plugin_actions( $links, $file ){
+			//Static so we don't call plugin_basename on every plugin row.
+			static $this_plugin;
+			if ( ! $this_plugin ) $this_plugin = plugin_basename(__FILE__);
+			
+			if ( $file == $this_plugin ){
+				$settings_link = '<a href="plugins.php?page=robots-meta.php">' . __('Settings') . '</a>';
+				array_unshift( $links, $settings_link ); // before other links
+			}
+			return $links;
+		}
+		
 		function meta_box() {
 			if ( function_exists('add_meta_box') ) {
 				add_meta_box('robotsmeta','Robots Meta',array('RobotsMeta_Admin','noindex_option_fill'),'post');
@@ -28,6 +51,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 				add_action('dbx_page_sidebar', array('RobotsMeta_Admin','noindex_option'));				
 			}
 		}
+		
 		function robotsmeta_insert_post($pID) {
 			global $wpdb;
 			extract($_POST);
