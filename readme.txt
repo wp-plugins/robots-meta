@@ -41,12 +41,12 @@ More info:
 
 == Changelog ==
 
-= Trunk =
-* Added localization for all texts
-
 = 3.2.1 =
+* Added localization for all texts.
+* Added .POT file.
 * Made .htaccess saving work again.
-* Changed link from joostdevalk.nl to yoast.com (ouch, that move was almost a year ago)
+* Added possibility to edit wp-content/cache/.htaccess when wp-super-cache is active.
+* Changed link from joostdevalk.nl to yoast.com (ouch, that move was almost a year ago).
 
 = 3.2 =
 * Switched to new backend class.
