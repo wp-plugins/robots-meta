@@ -2,7 +2,7 @@
 
 /**
  * Backend Class for use in all Yoast plugins
- * Version 0.1.1
+ * Version 0.1.2
  */
 
 if (!class_exists('Yoast_Plugin_Admin')) {

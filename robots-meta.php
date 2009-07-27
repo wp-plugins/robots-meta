@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://yoast.com/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.2
+Version: 3.2.1
 Author URI: http://yoast.com/
 */
 
@@ -66,7 +66,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 		
 		function config_page() {
 			if ( isset($_POST['submitrobots']) ) {
-				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.'));
+				if (!current_user_can('manage_options')) die(__('You cannot edit the robots.txt file.', 'robots-meta'));
 				check_admin_referer('robots-meta-udpaterobotstxt');
 				
 				if (file_exists($_SERVER['DOCUMENT_ROOT']."/robots.txt")) {
@@ -81,7 +81,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			}
 			
 			if ( isset($_POST['submithtaccess']) ) {
-				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess file.'));
+				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess file.', 'robots-meta'));
 				check_admin_referer('robots-meta-udpatehtaccesstxt');
 
 				if (file_exists($_SERVER['DOCUMENT_ROOT']."/.htaccess")) {
@@ -94,9 +94,24 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					}
 				} 
 			}
+
+			if ( isset($_POST['submitcachehtaccess']) ) {
+				if (!current_user_can('manage_options')) die(__('You cannot edit the .htaccess file.', 'robots-meta'));
+				check_admin_referer('robots-meta-udpatecachehtaccesstxt');
+
+				if (file_exists(WP_CONTENT_DIR."/cache/.htaccess")) {
+					$htaccess_file = WP_CONTENT_DIR."/cache/.htaccess";
+					$htaccessnew = stripslashes($_POST['cachehtaccessnew']);
+					if (is_writeable($htaccess_file)) {
+						$f = fopen($htaccess_file, 'w+');
+						fwrite($f, $htaccessnew);
+						fclose($f);
+					}
+				} 
+			}
 			
 			if ( isset($_POST['submit']) ) {
-				if (!current_user_can('manage_options')) die(__('You cannot edit the Robots Meta options.'));
+				if (!current_user_can('manage_options')) die(__('You cannot edit the Robots Meta options.', 'robots-meta'));
 				check_admin_referer('robots-meta-udpatesettings');
 				
 				foreach (array('admin', 'allfeeds', 'commentfeeds', 'disableauthor', 'disabledate', 
@@ -105,14 +120,15 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 					  'nofollowindexlinks', 'nofollowmeta', 'nofollowmeta', 'nofollowcommentlinks', 
 					  'nofollowtaglinks', 'noodp', 'noydir', 'pagedhome', 'search', 'replacemetawidget',
 					  'redirectsearch', 'trailingslash', 'redirectattachment') 
-				as $option_name) {
+					as $option_name) {
 					if (isset($_POST[$option_name])) {
 						$options[$option_name] = true;
 					} else {
 						$options[$option_name] = false;
 					}
 				}
-			        foreach (array('googleverify', 'msverify', 'yahooverify', 'version') as $option_name) {
+
+		        foreach (array('googleverify', 'msverify', 'yahooverify', 'version') as $option_name) {
 					if (isset($_POST[$option_name])) {
 						$options[$option_name] = $_POST[$option_name];
 					}
@@ -130,7 +146,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			?>
 			<div class="wrap">
 				<a href="http://yoast.com/"><div id="yoast-icon" style="background: url(http://cdn.yoast.com/theme/yoast-32x32.png) no-repeat;" class="icon32"><br /></div></a>
-				<h2>Robots Meta Configuration</h2>
+				<h2><?php _e("Robots Meta Configuration", 'robots-meta'); ?></h2>
 				<div class="postbox-container" style="width:70%;">
 					<div class="metabox-holder">	
 						<div class="meta-box-sortables">
@@ -138,94 +154,93 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('robots-meta-udpatesettings'); } ?>
 								<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
 								<?php 
-									$this->postbox('pluginsettings','Plugin Settings',$this->checkbox('disableexplanation','Hide verbose explanations of settings')); 
+									$this->postbox('pluginsettings',__('Plugin Settings', 'robots-meta'),$this->checkbox('disableexplanation',__('Hide verbose explanations of settings', 'robots-meta'))); 
 									
-									$content = $this->checkbox('commentfeeds','<code>noindex</code> the comment RSS feeds');
-									$content .= '<p class="desc">This will prevent the search engines from indexing your comment feeds.</p>';
+									$content = $this->checkbox('commentfeeds',__('<code>noindex</code> the comment RSS feeds', 'robots-meta') );
+									$content .= '<p class="desc">'.__('This will prevent the search engines from indexing your comment feeds.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('allfeeds','<code>noindex</code> <strong>all</strong> RSS feeds');
-									$content .= '<p class="desc">This will prevent the search engines from indexing <strong>all your</strong> feeds. Highly discouraged.</p>';
+									$content .= $this->checkbox('allfeeds',__('<code>noindex</code> <strong>all</strong> RSS feeds', 'robots-meta') );
+									$content .= '<p class="desc">'.__('This will prevent the search engines from indexing <strong>all your</strong> feeds. Highly discouraged.', 'robots-meta').'</p>';
 
-									$this->postbox('rssfeeds','RSS Feeds',$content); 
+									$this->postbox('rssfeeds',__('RSS Feeds', 'robots-meta'),$content); 
 
+									$content = $this->checkbox('search',__('This site\'s search result pages', 'robots-meta'));
+									$content .= '<p class="desc">'.__('Prevents the search engines from indexing your search result pages, by a <code>noindex,follow</code> robots tag to them. The <code>follow</code> part means that search engine crawlers <em>will</em> spider the pages listed in the search results.', 'robots-meta').'</p>';
+									$content .= $this->checkbox('logininput',__('The login and register pages', 'robots-meta') );
+									$content .= '<p class="desc">'.__('(warning: don\'t enable this if you have the <a href="http://wordpress.org/extend/plugins/minimeta-widget/">minimeta widget</a> installed!)', 'robots-meta').'</p>';
+									$content .= $this->checkbox('admin',__('All admin pages', 'robots-meta') );
+									$content .= '<p class="desc">'.__('The above two options prevent the search engines from indexing your login, register and admin pages.', 'robots-meta').'</p>';
+									$content .= $this->checkbox('pagedhome',__('Subpages of the homepage', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Prevent the search engines from indexing your subpages, if you want them to only index your category and / or tag archives.', 'robots-meta').'</p>';
+									$content .= $this->checkbox('noindexauthor',__('Author archives', 'robots-meta') );
+									$content .= '<p class="desc">'.__('By default, WordPress creates author archives for each user, usually available under <code>/author/username</code>. If you have sufficient other archives, or yours is a one person blog, there\'s no need and you can best disable them or prevent search engines from indexing them.', 'robots-meta').'</p>';
+									
+									$content .= $this->checkbox('noindexdate',__('Date-based archives', 'robots-meta') );
+									$content .= '<p class="desc">'.__('If you want to offer your users the option of crawling your site by date, but have ample other ways for the search engines to find the content on your site, I highly encourage you to prevent your date-based archives from being indexed.', 'robots-meta').'</p>';
+									$content .= $this->checkbox('noindexcat',__('Category archives', 'robots-meta') );
+									$content .= '<p class="desc">'.__('If you\'re using tags as your only way of structure on your site, you would probably be better off when you prevent your categories from being indexed.', 'robots-meta').'</p>';
 
-									$content = $this->checkbox('search','This site\'s search result pages');
-									$content .= '<p class="desc">Prevents the search engines from indexing your search result pages, by a <code>noindex,follow</code> robots tag to them. The <code>follow</code> part means that search engine crawlers <em>will</em> spider the pages listed in the search results.</p>';
-									$content .= $this->checkbox('logininput','The login and register pages');
-									$content .= '<p class="desc">(warning: don\'t enable this if you have the <a href="http://wordpress.org/extend/plugins/minimeta-widget/">minimeta widget</a> installed!)</p>';
-									$content .= $this->checkbox('admin','All admin pages');
-									$content .= '<p class="desc">The above two options prevent the search engines from indexing your login, register and admin pages.</p>';
-									$content .= $this->checkbox('pagedhome','Subpages of the homepage');
-									$content .= '<p class="desc">Prevent the search engines from indexing your subpages, if you want them to only index your category and / or tag archives.</p>';
-									$content .= $this->checkbox('noindexauthor','Author archives');
-									$content .= '<p class="desc">By default, WordPress creates author archives for each user, usually available under <code>/author/username</code>. If you have sufficient other archives, or yours is a one person blog, there\'s no need and you can best disable them or prevent search engines from indexing them.</p>';
+									$content .= $this->checkbox('noindextag',__('Tag archives', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Read the categories explanation above for categories and switch the words category and tag around ;)', 'robots-meta').'</p>';
+									$content .= $this->checkbox('noarchive',__('Add <code>noarchive</code> meta tag', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Prevents archive.org and Google from putting copies of your pages into their archive/cache.to put copies of your pages into their archive/cache.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('noindexdate','Date-based archives');
-									$content .= '<p class="desc">If you want to offer your users the option of crawling your site by date, but have ample other ways for the search engines to find the content on your site, I highly encourage you to prevent your date-based archives from being indexed.</p>';
-									$content .= $this->checkbox('noindexcat','Category archives');
-									$content .= '<p class="desc">If you\'re using tags as your only way of structure on your site, you would probably be better off when you prevent your categories from being indexed.</p>';
-
-									$content .= $this->checkbox('noindextag','Tag archives');
-									$content .= '<p class="desc">Read the categories explanation above for categories and switch the words category and tag around ;)</p>';
-									$content .= $this->checkbox('noarchive','Add <code>noarchive</code> meta tag');
-									$content .= '<p class="desc">Prevents archive.org and Google from putting copies of your pages into their archive/cache.to put copies of your pages into their archive/cache.</p>';
+									$this->postbox('preventindexing',__('Prevent Indexing', 'robots-meta'),$content); 
 									
-									$this->postbox('preventindexing','Prevent Indexing',$content); 
+									$content = $this->checkbox('noodp',__('Add <code>noodp</code> meta robots tag', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Prevents all search engines from using the DMOZ description for this site in the search results.', 'robots-meta').'</p>';
+									$content .= $this->checkbox('noydir',__('Add <code>noydir</code> meta robots tag', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Prevents Yahoo! from using the Yahoo! directory description for this site in the search results.', 'robots-meta').'</p>';
 									
-									$content = $this->checkbox('noodp','Add <code>noodp</code> meta robots tag');
-									$content .= '<p class="desc">Prevents all search engines from using the DMOZ description for this site in the search results.</p>';
-									$content .= $this->checkbox('noydir','Add <code>noydir</code> meta robots tag');
-									$content .= '<p class="desc">Prevents Yahoo! from using the Yahoo! directory description for this site in the search results.</p>';
-									
-									$this->postbox('directories','DMOZ and Yahoo! Directory',$content); 
+									$this->postbox('directories',__('DMOZ and Yahoo! Directory', 'robots-meta'),$content); 
 									
 									$content = $this->checkbox('trailingslash','Enforce a trailing slash on all category and tag URL\'s');
-									$content .= '<p class="desc">If you choose a permalink for your posts with <code>.html</code>, or anything else but a / on the end, this will force WordPress to add a trailing slash to non-post pages nonetheless.</p>';
+									$content .= '<p class="desc">'.__('If you choose a permalink for your posts with <code>.html</code>, or anything else but a / on the end, this will force WordPress to add a trailing slash to non-post pages nonetheless.', 'robots-meta').'</p>';
 
 									$content .= $this->checkbox('redirectattachment','Redirect attachment URL\'s to parent post URL.');
-									$content .= '<p class="desc">Attachments to posts are stored in the database as posts, this means they\'re accessible under their own URL\'s if you do not redirect them, enabling this will redirect them to the post they were attached to.</p>';
+									$content .= '<p class="desc">'.__('Attachments to posts are stored in the database as posts, this means they\'re accessible under their own URL\'s if you do not redirect them, enabling this will redirect them to the post they were attached to.', 'robots-meta').'</p>';
 									
-									$this->postbox('permalinks','Permalink Settings',$content); 
+									$this->postbox('permalinks',__('Permalink Settings', 'robots-meta'),$content); 
 									
-									$content = $this->checkbox('disableauthor','Disable the author archives');
-									$content .= '<p class="desc">If you\'re running a one author blog, the author archive will always look exactly the same as your homepage. And even though you may not link to it, others might, to do you harm. Disabling them here will make sure any link to those archives will be 301 redirected to the blog homepage.</p>';
+									$content = $this->checkbox('disableauthor',__('Disable the author archives', 'robots-meta') );
+									$content .= '<p class="desc">'.__('If you\'re running a one author blog, the author archive will always look exactly the same as your homepage. And even though you may not link to it, others might, to do you harm. Disabling them here will make sure any link to those archives will be 301 redirected to the blog homepage.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('disabledate','Disable the date-based archives');
-									$content .= '<p class="desc">For the date based archives, the same applies: they probably look a lot like your homepage, and could thus be seen as duplicate content.</p>';
+									$content .= $this->checkbox('disabledate',__('Disable the date-based archives', 'robots-meta') );
+									$content .= '<p class="desc">'.__('For the date based archives, the same applies: they probably look a lot like your homepage, and could thus be seen as duplicate content.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('redirectsearch','Redirect search results pages when referrer is external');
-									$content .= '<p class="desc">Redirect people coming to a search page on your site from elsewhere to your homepage, prevents people from linking to search results on your site.</p>';
+									$content .= $this->checkbox('redirectsearch',__('Redirect search results pages when referrer is external', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Redirect people coming to a search page on your site from elsewhere to your homepage, prevents people from linking to search results on your site.', 'robots-meta').'</p>';
 									
-									$this->postbox('archivesettings','Archive Settings', $content);
+									$this->postbox('archivesettings',__('Archive Settings', 'robots-meta'),$content);
 									
-									$content = $this->checkbox('nofollowcatpage','Nofollow category listings on pages');
-									$content .= $this->checkbox('nofollowcatsingle','Nofollow category listings on single posts');
-									$content .= '<p class="desc">If you\'re showing a category listing on all your single posts and pages, you\'re "leaking" quite a bit of PageRank towards these pages, whereas you probably want your single posts to rank. To prevent that from happening, check the two boxes above, and you will nofollow all the links to your categories from single posts and/or pages.</p>';
+									$content = $this->checkbox('nofollowcatpage',__('Nofollow category listings on pages', 'robots-meta') );
+									$content .= $this->checkbox('nofollowcatsingle',__('Nofollow category listings on single posts', 'robots-meta') );
+									$content .= '<p class="desc">'.__('If you\'re showing a category listing on all your single posts and pages, you\'re "leaking" quite a bit of PageRank towards these pages, whereas you probably want your single posts to rank. To prevent that from happening, check the two boxes above, and you will nofollow all the links to your categories from single posts and/or pages.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('nofollowindexlinks','Nofollow outbound links on the frontpage');
-									$content .= '<p class="desc">If you want to keep the link-juice on your front page to yourself, enable this, and you will only pass link-juice from your post pages.</p>';
+									$content .= $this->checkbox('nofollowindexlinks',__('Nofollow outbound links on the frontpage', 'robots-meta') );
+									$content .= '<p class="desc">'.__('If you want to keep the link-juice on your front page to yourself, enable this, and you will only pass link-juice from your post pages.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('nofollowtaglinks','Nofollow the links to your tag pages');
-									$content .= '<p class="desc">If you\'ve decided to keep your tag pages from being indexed, you might as well stop throwing link-juice at them on each post...</p>';
+									$content .= $this->checkbox('nofollowtaglinks',__('Nofollow the links to your tag pages', 'robots-meta') );
+									$content .= '<p class="desc">'.__('If you\'ve decided to keep your tag pages from being indexed, you might as well stop throwing link-juice at them on each post...', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('nofollowmeta','Nofollow login and registration links');
-									$content .= '<p class="desc">This might have happened to you: logging in to your admin panel to notice that it has become PR6... Nofollow those admin and login links, there\'s no use flowing PageRank to those pages!</p>';
+									$content .= $this->checkbox('nofollowmeta',__('Nofollow login and registration links', 'robots-meta') );
+									$content .= '<p class="desc">'.__('This might have happened to you: logging in to your admin panel to notice that it has become PR6... Nofollow those admin and login links, there\'s no use flowing PageRank to those pages!', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('nofollowcommentlinks','Nofollow comments links');
-									$content .= '<p class="desc">Simple way to decrease the number of links on your pages: nofollow all the links pointing to comment sections.</p>';
+									$content .= $this->checkbox('nofollowcommentlinks',__('Nofollow comments links', 'robots-meta') );
+									$content .= '<p class="desc">'.__('Simple way to decrease the number of links on your pages: nofollow all the links pointing to comment sections.', 'robots-meta').'</p>';
 									
-									$content .= $this->checkbox('replacemetawidget','Replace the Meta Widget with a nofollowed one');
-									$content .= '<p class="desc">By default the Meta widget links to your RSS feeds and to WordPress.org with a follow link, this will replace that widget by a custom one in which all these links are nofollowed.</p>';
+									$content .= $this->checkbox('replacemetawidget',__('Replace the Meta Widget with a nofollowed one', 'robots-meta') );
+									$content .= '<p class="desc">'.__('By default the Meta widget links to your RSS feeds and to WordPress.org with a follow link, this will replace that widget by a custom one in which all these links are nofollowed.', 'robots-meta').'</p>';
 									
-									$this->postbox('internalnofollow','Internal nofollow settings',$content);
+									$this->postbox('internalnofollow',__('Internal nofollow settings', 'robots-meta'),$content);
 									
-									$content = $this->textinput('googleverify','Verify meta value for Google Webmaster Tools');
-									$content .= $this->textinput('yahooverify','Verify meta value for Yahoo! Site Explorer');
-									$content .= $this->textinput('msverify','Verify meta value for Microsoft Webmaster Portal');
+									$content = $this->textinput('googleverify',__('Verify meta value for Google Webmaster Tools', 'robots-meta'));
+									$content .= $this->textinput('yahooverify',__('Verify meta value for Yahoo! Site Explorer', 'robots-meta'));
+									$content .= $this->textinput('msverify',__('Verify meta value for Microsoft Webmaster Portal', 'robots-meta'));
 
-									$this->postbox('webmastertools','Webmaster Tools',$content);
+									$this->postbox('webmastertools',__('Webmaster Tools', 'robots-meta'),$content);
 								?>
-								<div class="submit"><input type="submit" class="button-primary" name="submit" value="Save Robots Meta Settings" /></div>
+								<div class="submit"><input type="submit" class="button-primary" name="submit" value="<?php _e("Save Robots Meta Settings", 'robots-meta'); ?>" /></div>
 							</form>
 							<?php 
 
@@ -236,17 +251,17 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								$robotstxtcontent = htmlspecialchars($content);
 
 								if (!is_writable($robots_file)) {
-									$content = "<p><em>If your robots.txt were writable, you could edit it from here.</em></p>";
+									$content = "<p><em>".__("If your robots.txt were writable, you could edit it from here.", 'robots-meta')."</em></p>";
 									$content .= '<textarea disabled="disabled" style="width: 90%;" rows="15" name="robotsnew">'.$robotstxtcontent.'</textarea><br/>';
 								} else {
-									$content = '<form action="" method="post">';
+									$content = '<form action="" method="post" id="robotstxtform">';
 									$content .= wp_nonce_field('robots-meta-udpaterobotstxt','_wpnonce',true,false);
-									$content .= "<p>Edit the content of your robots.txt:</p>";
+									$content .= "<p>".__("Edit the content of your robots.txt:", 'robots-meta')."</p>";
 									$content .= '<textarea style="width: 90%;" rows="15" name="robotsnew">'.$robotstxtcontent.'</textarea><br/>';
-									$content .= '<div class="submit"><input class="button" type="submit" name="submitrobots" value="Save changes to Robots.txt" /></div>';
+									$content .= '<div class="submit"><input class="button" type="submit" name="submitrobots" value="'.__("Save changes to Robots.txt", 'robots-meta').'" /></div>';
 									$content .= '</form>';
 								}
-								$this->postbox('robotstxt','Robots.txt',$content);
+								$this->postbox('robotstxt',__('Robots.txt', 'robots-meta'),$content);
 							}
 							
 							if (file_exists($_SERVER['DOCUMENT_ROOT'] ."/.htaccess")) {
@@ -256,17 +271,37 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 								$contentht = htmlspecialchars($contentht);
 
 								if (!is_writable($htaccess_file)) {
-									$content = "<p><em>If your .htaccess were writable, you could edit it from here.</em></p>";
+									$content = "<p><em>".__("If your .htaccess were writable, you could edit it from here.", 'robots-meta')."</em></p>";
 									$content .= '<textarea disabled="disabled" style="width: 90%;" rows="15" name="robotsnew">'.$contentht.'</textarea><br/>';
 								} else {
-									$content = '<form action="" method="post">';
+									$content = '<form action="" method="post" id="htaccessform">';
 									$content .= wp_nonce_field('robots-meta-udpatehtaccesstxt','_wpnonce',true,false);
-									$content =  "<p>Edit the content of your .htaccess:</p>";
-									$content .= '<textarea style="width: 90%;" rows="15" name="robotsnew">'.$contentht.'</textarea><br/>';
-									$content .= '<div class="submit"><input class="button" type="submit" name="submithtaccess" value="Save changes to .htaccess" /></div>';
+									$content .=  "<p>Edit the content of your .htaccess:</p>";
+									$content .= '<textarea style="width: 90%;" rows="15" name="htaccessnew">'.$contentht.'</textarea><br/>';
+									$content .= '<div class="submit"><input class="button" type="submit" name="submithtaccess" value="'.__('Save changes to .htaccess', 'robots-meta').'" /></div>';
 									$content .= '</form>';
 								}
-								$this->postbox('htaccess','.htaccess file',$content);
+								$this->postbox('htaccess',__('.htaccess file', 'robots-meta'),$content);
+							}
+							
+							if (is_plugin_active('wp-super-cache/wp-cache.php')) {
+								$cachehtaccess = WP_CONTENT_DIR.'/cache/.htaccess';
+								$f = fopen($cachehtaccess, 'r');
+								$cacheht = fread($f, filesize($cachehtaccess));
+								$cacheht = htmlspecialchars($cacheht);
+
+								if (!is_writable($cachehtaccess)) {
+									$content = "<p><em>".__("If your", 'robots-meta')." ".WP_CONTENT_DIR."/cache/.htaccess ".__("were writable, you could edit it from here.", 'robots-meta')."</em></p>";
+									$content .= '<textarea disabled="disabled" style="width: 90%;" rows="15" name="robotsnew">'.$cacheht.'</textarea><br/>';
+								} else {
+									$content = '<form action="" method="post" id="htaccessform">';
+									$content .= wp_nonce_field('robots-meta-udpatecachehtaccesstxt','_wpnonce',true,false);
+									$content .=  "<p>".__("Edit the content of your cache directory's .htaccess:", 'robots-meta')."</p>";
+									$content .= '<textarea style="width: 90%;" rows="15" name="cachehtaccessnew">'.$cacheht.'</textarea><br/>';
+									$content .= '<div class="submit"><input class="button" type="submit" name="submitcachehtaccess" value="'.__('Save changes to .htaccess', 'robots-meta').'" /></div>';
+									$content .= '</form>';
+								}
+								$this->postbox('cachehtaccess',__('wp-super-cache cache dir .htaccess file', 'robots-meta'),$content);
 							}
 							?>
 						</div>
@@ -278,7 +313,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 							<?php
 								$this->plugin_like();
 								$this->plugin_support();
-								$this->postbox('wpseo','SEO &amp; WordPress','<p>If you haven\'t read it yet, my <a href="http://yoast.com/articles/wordpress-seo/">article on WordPress SEO</a> is probably a good place to start learning about how to optimize your WordPress.</p>');
+								$this->postbox('wpseo','SEO &amp; WordPress','<p>'.__('If you haven\'t read it yet, my <a href="http://yoast.com/articles/wordpress-seo/">article on WordPress SEO</a> is probably a good place to start learning about how to optimize your WordPress.', 'robots-meta').'</p>');
 								$this->news(); 
 							?>
 						</div>
@@ -335,7 +370,7 @@ function meta_robots() {
 		$meta .= "noarchive";
 	}
 	if ($meta != "" && $meta != "index,follow") {
-		echo '<!--Meta tags added by Robots Meta: http://www.joostdevalk.nl/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
+		echo '<!-- Meta tags added by Robots Meta: http://yoast.com/wordpress/meta-robots-wordpress-plugin/ -->'."\n";
 		echo '<meta name="robots" content="'.$meta.'" />'."\n";
 	}
 } 
@@ -446,16 +481,16 @@ function widget_jdvmeta_init() {
 	function wp_jdvwidget_meta($args) {
 		extract($args);
 		$options = get_option('widget_meta');
-		$title = empty($options['title']) ? __('Meta') : $options['title'];
+		$title = empty($options['title']) ? __('Meta', 'robots-meta') : $options['title'];
 	?>
 			<?php echo $before_widget; ?>
 				<?php echo $before_title . $title . $after_title; ?>
 				<ul>
 				<?php wp_register(); ?>
 				<li><?php wp_loginout(); ?></li>
-				<li><a rel="nofollow" href="<?php bloginfo('rss2_url'); ?>" title="<?php echo attribute_escape(__('Syndicate this site using RSS 2.0')); ?>"><?php _e('Entries <abbr title="Really Simple Syndication">RSS</abbr>'); ?></a></li>
-				<li><a rel="nofollow"href="<?php bloginfo('comments_rss2_url'); ?>" title="<?php echo attribute_escape(__('The latest comments to all posts in RSS')); ?>"><?php _e('Comments <abbr title="Really Simple Syndication">RSS</abbr>'); ?></a></li>
-				<li><a rel="nofollow" href="http://wordpress.org/" title="<?php echo attribute_escape(__('Powered by WordPress, state-of-the-art semantic personal publishing platform.')); ?>">WordPress.org</a></li>
+				<li><a rel="nofollow" href="<?php bloginfo('rss2_url'); ?>" title="<?php echo attribute_escape(__('Syndicate this site using RSS 2.0', 'robots-meta')); ?>"><?php _e('Entries <abbr title="Really Simple Syndication">RSS</abbr>', 'robots-meta'); ?></a></li>
+				<li><a rel="nofollow"href="<?php bloginfo('comments_rss2_url'); ?>" title="<?php echo attribute_escape(__('The latest comments to all posts in RSS', 'robots-meta')); ?>"><?php _e('Comments <abbr title="Really Simple Syndication">RSS</abbr>', 'robots-meta'); ?></a></li>
+				<li><a rel="nofollow" href="http://wordpress.org/" title="<?php echo attribute_escape(__('Powered by WordPress, state-of-the-art semantic personal publishing platform.', 'robots-meta')); ?>">WordPress.org</a></li>
 				<?php wp_meta(); ?>
 				</ul>
 			<?php echo $after_widget; ?>
