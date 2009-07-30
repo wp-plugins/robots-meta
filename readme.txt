@@ -4,7 +4,7 @@ Donate link: http://yoast.com/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.5
 Tested up to: 2.8.2
-stable tag: 3.2.1
+stable tag: 3.2.2
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, disable unused archives, nofollow unnecessary links as well as do some other SEO related actions.
 
@@ -40,6 +40,9 @@ More info:
 2. Screenshot of the right column block this plugin adds to the edit post and edit page admin areas.
 
 == Changelog ==
+
+= 3.2.2 =
+* Upgraded backend class.
 
 = 3.2.1 =
 * Added localization for all texts.
