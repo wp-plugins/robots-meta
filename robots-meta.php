@@ -4,7 +4,7 @@ Plugin Name: Robots Meta
 Plugin URI: http://yoast.com/wordpress/robots-meta/
 Description: This plugin allows you to add all the appropriate robots meta tags to your pages and feeds, disable unused archives and nofollow unnecessary links.
 Author: Joost de Valk
-Version: 3.2.4
+Version: 3.2.5
 Author URI: http://yoast.com/
 */
 
@@ -38,6 +38,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			add_action('wp_dashboard_setup', array(&$this,'widget_setup'));	
 			add_action('admin_menu', array('RobotsMeta_Admin','meta_box'));
 			add_action('wp_insert_post', array('RobotsMeta_Admin','robotsmeta_insert_post'));
+
+			if ( '0' == get_option('blog_public') )
+				add_action('admin_footer', array(&$this,'blog_public_warning'));
+			
 		}
 		
 		function robots_meta_admin_script() {
@@ -62,6 +66,10 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			<label for="meta_robots_noindex_follow" class="selectit"><input id="meta_robots_noindex_follow" name="robotsmeta" type="radio" value="noindex,follow" <?php if ($robotsmeta == "noindex,follow") echo 'checked="checked"'?>/> noindex, follow</label><br/>
 			<label for="meta_robots_noindex_nofollow" class="selectit"><input id="meta_robots_noindex_nofollow" name="robotsmeta" type="radio" value="noindex,nofollow" <?php if ($robotsmeta == "noindex,nofollow") echo 'checked="checked"'?>/> noindex, nofollow</label><br/>
 			<?php
+		}
+		
+		function blog_public_warning() {
+			echo "<div id='message' class='error'><p><strong>Robots Meta Issue: You're blocking access to robots.</strong> You must <a href='options-privacy.php'>go to your Privacy settings</a> and set your blog visible to everyone.</p></div>";
 		}
 		
 		function config_page() {
