@@ -2,9 +2,9 @@
 Contributors: joostdevalk
 Donate link: http://yoast.com/donate/
 Tags: meta,search engines,seo
-Requires at least: 2.2
-Tested up to: 2.7
-stable tag: 3.0.12
+Requires at least: 2.8
+Tested up to: 3.0
+stable tag: 3.3
 
 This plugin makes it easy to add the appropriate meta robots tags to your pages, disable unused archives, nofollow unnecessary links as well as do some other SEO related actions.
 
@@ -21,12 +21,11 @@ This plugin makes it possible (and very easy) to:
 * Prevent Yahoo! and Google from indexing your feeds by adding a meta tag to their head-section.
 * Prevent indexing of just your comment feeds.
 * Disable author and date-based archives.
-* Nofollow category listings on single pages and posts to prevent PageRank leakage.
-* Nofollow your login, register and admin links, because they really don't need PageRank.
+* Prevent attachment pages from ranking in the search results over your articles.
 * Enforce a trailing slash on archives.
 * Edit your .htaccess and your robots.txt from within WordPress.
 * Assign robots meta tags to individual posts & pages.
-* Verify your site with Google Webmaster Tools and Yahoo! Site Explorer.
+* Verify your site with Google Webmaster Tools, Yahoo! Site Explorer and Bing Webmaster Tools.
 * Add noarchive tags to your blog (Thanks to [Henryk Gerlach](http://blog.littleimpact.de/index.php/2008/07/03/noarchive-tag-for-robots-meta/)). 
 
 More info:
@@ -40,11 +39,37 @@ More info:
 1. Screenshot of the configuration panel for this plugin.
 2. Screenshot of the right column block this plugin adds to the edit post and edit page admin areas.
 
-== More info ==
+== Changelog ==
 
-* For more info, version history, etc. check out the page on my site about the [Robots Meta plugin](http://yoast.com/wordpress/meta-robots-wordpress-plugin/). 
-* To check out the other WordPress plugins I wrote, check out my [WordPress plugins](http://yoast.com/wordpress/) page.
-* For updates about this plugin and other plugins I created read my [SEO blog](http://yoast.com/)
+= 3.3 =
+* Fixed bug where post / page robots meta settings would not save.
+* Added post / page robots meta settings to edit pages and edit posts overview.
+
+= 3.2.5 =
+* Added check to see whether Blog Privacy is set to block Search Engines and throw a warning if it is.
+
+= 3.2.4 =
+* Fixed saving noindex / index option on post / page edit screens.
+* Fixed some image links.
+
+= 3.2.3 =
+* Changed Google verification tag to match new standard.
+
+= 3.2.2 =
+* Upgraded backend class.
+
+= 3.2.1 =
+* Added localization for all texts.
+* Added .POT file.
+* Made .htaccess saving work again.
+* Added possibility to edit wp-content/cache/.htaccess when wp-super-cache is active.
+* Changed link from joostdevalk.nl to yoast.com (ouch, that move was almost a year ago).
+
+= 3.2 =
+* Switched to new backend class.
+* Updated backend with new look and feel and added some scripting to make explanation showing and hiding easier.
+* Added option to redirect attachment pages to their pagent posts / pages.
+* Switched to new changelog.
 
 == Installation ==
 
