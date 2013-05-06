@@ -39,6 +39,7 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 			add_action('admin_menu', array(&$this,'meta_box'));
 			add_action('wp_insert_post', array(&$this,'robotsmeta_insert_post'));
 
+			add_action('all_admin_notices', array(&$this,'install_wordpress_seo_notice'));
 			if ( '0' == get_option('blog_public') )
 				add_action('admin_footer', array(&$this,'blog_public_warning'));
 		
@@ -95,6 +96,16 @@ if ( ! class_exists( 'RobotsMeta_Admin' ) ) {
 		
 		function blog_public_warning() {
 			echo "<div id='message' class='error'><p><strong>Robots Meta Issue: You're blocking access to robots.</strong> You must <a href='options-privacy.php'>go to your Privacy settings</a> and set your blog visible to everyone.</p></div>";
+		}
+		
+		function install_wordpress_seo_notice() {
+			global $pagenow;
+			$plugins = get_plugins();
+			if ( $pagenow == 'options-general.php' && $_GET['page'] == 'robots-meta') {
+				if ( !$plugins['wordpress-seo/wp-seo.php'] ) {
+					echo '<div class="updated"><p>' . sprintf( __( 'Robots Meta has been superseded by Wordpress SEO. Please %sinstall &amp; activate WordPress SEO by Yoast%s and import the Robots Meta settings.' ), '<a href="' . admin_url( 'plugin-install.php?tab=search&type=term&s=wordpress+seo&plugin-search-input=Search+Plugins' ) . '">', '</a>' ) . '</p></div>';
+				}
+			}
 		}
 		
 		function config_page() {
