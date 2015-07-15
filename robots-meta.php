@@ -10,6 +10,7 @@ Author URI: http://yoast.com/
 
 if ( is_admin() && current_user_can('manage_options') ) {
 	function robots_meta_upgrade_warning() {
-		echo '<div id="message">Robots Meta has been discontinued and isn\'t actively maintained. Please <a href="http://local.wordpress.dev/wp-admin/plugin-install.php?tab=search&s=yoast+seo">install Yoast SEO</a> as that\'s both well maintained and more secure.</div>';
+		echo '<div class="updated" id="message">Robots Meta has been discontinued and isn\'t actively maintained. Please <a href="http://local.wordpress.dev/wp-admin/plugin-install.php?tab=search&s=yoast+seo">install Yoast SEO</a> as that\'s both well maintained and more secure, and disable this plugin.</div>';
 	}
+	add_action( 'admin_notices', 'robots_meta_upgrade_warning' );
 }
