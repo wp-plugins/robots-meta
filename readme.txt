@@ -4,13 +4,16 @@ Donate link: http://yoast.com/donate/
 Tags: meta,search engines,seo
 Requires at least: 2.8
 Tested up to: 3.0
-stable tag: 3.3.1
+stable tag: 3.4
 
-This plugin makes it easy to add the appropriate meta robots tags to your pages, disable unused archives, nofollow unnecessary links as well as do some other SEO related actions.
+This plugin is no longer maintained and replaced by Yoast SEO.
 
 == Description ==
 
-There's no easy way to add meta robots tags to WordPress pages, unless of course, when you install this plugin.
+> <strong>PLEASE NOTE</strong>
+> This plugin no longer works and has been replaced by [Yoast SEO](https://wordpress.org/plugins/wordpress-seo/).
+
+=== For historical reasons only: ===
 
 This plugin makes it possible (and very easy) to:
 
@@ -26,7 +29,7 @@ This plugin makes it possible (and very easy) to:
 * Edit your .htaccess and your robots.txt from within WordPress.
 * Assign robots meta tags to individual posts & pages.
 * Verify your site with Google Webmaster Tools, Yahoo! Site Explorer and Bing Webmaster Tools.
-* Add noarchive tags to your blog (Thanks to [Henryk Gerlach](http://blog.littleimpact.de/index.php/2008/07/03/noarchive-tag-for-robots-meta/)). 
+* Add noarchive tags to your blog (Thanks to [Henryk Gerlach](http://blog.littleimpact.de/index.php/2008/07/03/noarchive-tag-for-robots-meta/)).
 
 More info:
 
@@ -34,12 +37,10 @@ More info:
 * Read more about [WordPress SEO](http://yoast.com/articles/wordpress-seo/) so you can get the most out of this plugin.
 * Check out the other [Wordpress plugins](http://yoast.com/wordpress/) by the same author.
 
-== Screenshots ==
-
-1. Screenshot of the configuration panel for this plugin.
-2. Screenshot of the right column block this plugin adds to the edit post and edit page admin areas.
-
 == Changelog ==
+
+= 3.4 =
+* Closing down the plugin entirely.
 
 = 3.3.1 =
 * Fixed bug in posts overview.
